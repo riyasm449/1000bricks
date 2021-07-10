@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "20731183939",
+    "project_id": "thousand-bricks",
+    "storage_bucket": "thousand-bricks.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:20731183939:android:974ccfd3f4656042d0a5f6",
+        "android_client_info": {
+          "package_name": "com.mohamedriyas.thousandbricks"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "20731183939-trapbutqv375au6d472rjbbtgkp9j1g1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mohamedriyas.thousandbricks",
+            "certificate_hash": "6057713d3a8f7fba28c37495ab023001fe3d5bd6"
+          }
+        },
+        {
+          "client_id": "20731183939-07dtovvlfhje1ugspkmqkievjhg98ef2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqsgJqFu1mgK3Mz92t7aOiikCe7sXO3q4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "20731183939-07dtovvlfhje1ugspkmqkievjhg98ef2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
