@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
@@ -23,19 +24,12 @@ class _AddSiteState extends State<AddSite> {
   TextEditingController phoneNumber = TextEditingController();
   String category;
   List<File> estimation = [];
-  List<String> estimationLinks = [];
   List<File> renders = [];
-  List<String> rendersLinks = [];
   List<File> drawings = [];
-  List<String> drawingsLinks = [];
   DateTime startedOn;
   DateTime endedOn;
   String status;
   String progress;
-
-  TextEditingController sample1 = TextEditingController();
-  TextEditingController sample2 = TextEditingController();
-  TextEditingController sample3 = TextEditingController();
   List<String> categoryList = [
     'Architectural Design',
     'Landscaping Design',
@@ -52,6 +46,24 @@ class _AddSiteState extends State<AddSite> {
     'Project on Hold',
     'Project Terminated'
   ];
+  clear() {
+    siteName.clear();
+    siteLocation.clear();
+    clientName.clear();
+    clientGST.clear();
+    clientBillingAddress.clear();
+    mail.clear();
+    phoneNumber.clear();
+    setState(() {
+      category = null;
+      estimation = [];
+      renders = [];
+      drawings = [];
+      startedOn = null;
+      progress = null;
+    });
+  }
+
   Future<void> selectStartDate(BuildContext context) async {
     print('pressed');
     final DateTime picked = await showDatePicker(
@@ -104,10 +116,15 @@ class _AddSiteState extends State<AddSite> {
     });
   }
 
+  bool isLoading = false;
+
   addForm() async {
     List estimationFiles = [];
     List renderFiles = [];
     List drawingFiles = [];
+    setState(() {
+      isLoading = true;
+    });
     for (int i = 0; i < estimation.length; i++) {
       var value = await MultipartFile.fromFile(estimation[i].path, filename: basename(estimation[i].path));
       estimationFiles.add(value);
@@ -131,13 +148,13 @@ class _AddSiteState extends State<AddSite> {
       'clientBillingAddress': clientBillingAddress.text,
       'clientGst': clientGST.text,
       'contactMailId': mail.text,
-      'mobileNumber': '+919361144746',
+      'mobileNumber': '+91' + phoneNumber.text,
       'categoryOfWork': category,
-      'estimationAndBoqLinks': estimationLinks,
+      'estimationAndBoqLinks': [],
       'estimationAndBoqFiles': estimationFiles,
-      'threeDRendersLinks': rendersLinks,
+      'threeDRendersLinks': [],
       'threeDRendersFiles': renderFiles,
-      'drawingsLinks': drawingsLinks,
+      'drawingsLinks': [],
       'drawingsFiles': drawingFiles,
       'projectStartedOn': startedOn.toString(),
       'estimatedCompletionOfProject': endedOn.toString(),
@@ -152,11 +169,16 @@ class _AddSiteState extends State<AddSite> {
           progress = "$sent" + " Bytes of " "$total Bytes - " + percentage + " % uploaded";
           //update the progress
         });
+        clear();
       });
       print(responce);
     } catch (e) {
       print(e);
     }
+
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -166,51 +188,61 @@ class _AddSiteState extends State<AddSite> {
         title: Text('Add Site', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            if (progress != null) Text(progress),
-            textWidget(title: 'Site Name', controller: siteName),
-            textWidget(title: 'Site Location', controller: siteLocation),
-            textWidget(title: 'Client Name', controller: clientName),
-            textWidget(
-                title: 'Client Billing Address',
-                controller: clientBillingAddress,
-                minLine: 5,
-                maxLine: 8,
-                padding: const EdgeInsets.all(10)),
-            textWidget(title: 'Mail Id', controller: mail),
-            textWidget(title: 'Client GST', controller: clientGST),
-            dropDownBox(
-                list: categoryList,
-                value: category,
-                onChange: (String value) => setState(() => category = value),
-                title: 'Category of work'),
-            estimationField(context),
-            renderField(context),
-            drawingsField(context),
-            datePicker(context, title: 'Project Started on', dateTime: startedOn, onPressed: () {
-              selectStartDate(context);
-            }),
-            datePicker(context, title: 'Estimation Completed', dateTime: endedOn, onPressed: () {
-              selectEndDate(context);
-            }),
-            dropDownBox(
-                list: statusList,
-                onChange: (String value) => setState(() => status = value),
-                value: status,
-                title: 'Status Of Project'),
-            RaisedButton.icon(
-                onPressed: () {
-                  addForm();
-                },
-                icon: Icon(Icons.save),
-                label: Text("ADD"),
-                color: Commons.bgColor,
-                colorBrightness: Brightness.dark)
-          ],
-        ),
-      ),
+      body: isLoading
+          ? Column(
+              children: [
+                if (progress != null)
+                  Center(
+                    child: Text(progress),
+                  ),
+                Center(child: CircularProgressIndicator()),
+              ],
+            )
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  textWidget(title: 'Site Name', controller: siteName),
+                  textWidget(title: 'Site Location', controller: siteLocation),
+                  textWidget(title: 'Client Name', controller: clientName),
+                  textWidget(
+                      title: 'Client Billing Address',
+                      controller: clientBillingAddress,
+                      minLine: 5,
+                      maxLine: 8,
+                      padding: const EdgeInsets.all(10)),
+                  textWidget(title: 'Mail Id', controller: mail),
+                  numberField(title: 'Phone Number', controller: phoneNumber, maxLength: 10),
+                  textWidget(title: 'Client GST', controller: clientGST),
+                  dropDownBox(
+                      list: categoryList,
+                      value: category,
+                      onChange: (String value) => setState(() => category = value),
+                      title: 'Category of work'),
+                  estimationField(context),
+                  renderField(context),
+                  drawingsField(context),
+                  datePicker(context, title: 'Project Started on', dateTime: startedOn, onPressed: () {
+                    selectStartDate(context);
+                  }),
+                  datePicker(context, title: 'Estimation Completed', dateTime: endedOn, onPressed: () {
+                    selectEndDate(context);
+                  }),
+                  dropDownBox(
+                      list: statusList,
+                      onChange: (String value) => setState(() => status = value),
+                      value: status,
+                      title: 'Status Of Project'),
+                  RaisedButton.icon(
+                      onPressed: () {
+                        addForm();
+                      },
+                      icon: Icon(Icons.save),
+                      label: Text("ADD"),
+                      color: Commons.bgColor,
+                      colorBrightness: Brightness.dark)
+                ],
+              ),
+            ),
     );
   }
 
@@ -246,31 +278,31 @@ class _AddSiteState extends State<AddSite> {
           renders.removeAt(value);
         });
       },
-      widget: TextFormField(
-        controller: sample2,
-        decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Add Links',
-            contentPadding: EdgeInsets.symmetric(horizontal: 10),
-            suffix: IconButton(
-              onPressed: () {
-                if (sample2.text != '')
-                  setState(() {
-                    if (!rendersLinks.contains(sample2.text)) {
-                      rendersLinks.add(sample2.text);
-                      sample2.clear();
-                    }
-                  });
-              },
-              icon: Icon(Icons.add_circle_rounded),
-            )),
-      ),
-      links: rendersLinks,
-      removeLink: (int value) {
-        setState(() {
-          rendersLinks.removeAt(value);
-        });
-      },
+      // widget: TextFormField(
+      //   controller: sample2,
+      //   decoration: InputDecoration(
+      //       border: OutlineInputBorder(),
+      //       hintText: 'Add Links',
+      //       contentPadding: EdgeInsets.symmetric(horizontal: 10),
+      //       suffix: IconButton(
+      //         onPressed: () {
+      //           if (sample2.text != '')
+      //             setState(() {
+      //               if (!rendersLinks.contains(sample2.text)) {
+      //                 rendersLinks.add(sample2.text);
+      //                 sample2.clear();
+      //               }
+      //             });
+      //         },
+      //         icon: Icon(Icons.add_circle_rounded),
+      //       )),
+      // ),
+      // links: rendersLinks,
+      // removeLink: (int value) {
+      //   setState(() {
+      //     rendersLinks.removeAt(value);
+      //   });
+      // },
     );
   }
 
@@ -287,31 +319,31 @@ class _AddSiteState extends State<AddSite> {
           drawings.removeAt(value);
         });
       },
-      widget: TextFormField(
-        controller: sample3,
-        decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Add Links',
-            contentPadding: EdgeInsets.symmetric(horizontal: 10),
-            suffix: IconButton(
-              onPressed: () {
-                if (sample3.text != '')
-                  setState(() {
-                    if (!drawingsLinks.contains(sample3.text)) {
-                      drawingsLinks.add(sample3.text);
-                      sample3.clear();
-                    }
-                  });
-              },
-              icon: Icon(Icons.add_circle_rounded),
-            )),
-      ),
-      links: drawingsLinks,
-      removeLink: (int value) {
-        setState(() {
-          drawingsLinks.removeAt(value);
-        });
-      },
+      // widget: TextFormField(
+      //   controller: sample3,
+      //   decoration: InputDecoration(
+      //       border: OutlineInputBorder(),
+      //       hintText: 'Add Links',
+      //       contentPadding: EdgeInsets.symmetric(horizontal: 10),
+      //       suffix: IconButton(
+      //         onPressed: () {
+      //           if (sample3.text != '')
+      //             setState(() {
+      //               if (!drawingsLinks.contains(sample3.text)) {
+      //                 drawingsLinks.add(sample3.text);
+      //                 sample3.clear();
+      //               }
+      //             });
+      //         },
+      //         icon: Icon(Icons.add_circle_rounded),
+      //       )),
+      // ),
+      // links: drawingsLinks,
+      // removeLink: (int value) {
+      //   setState(() {
+      //     drawingsLinks.removeAt(value);
+      //   });
+      // },
     );
   }
 
@@ -328,43 +360,45 @@ class _AddSiteState extends State<AddSite> {
           estimation.removeAt(value);
         });
       },
-      widget: TextFormField(
-        controller: sample1,
-        decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Add Links',
-            contentPadding: EdgeInsets.symmetric(horizontal: 10),
-            suffix: IconButton(
-              onPressed: () {
-                if (sample1.text != '')
-                  setState(() {
-                    if (!estimationLinks.contains(sample1.text)) {
-                      estimationLinks.add(sample1.text);
-                      sample1.clear();
-                    }
-                  });
-                print(estimationLinks);
-              },
-              icon: Icon(Icons.add_circle_rounded),
-            )),
-      ),
-      links: estimationLinks,
-      removeLink: (int value) {
-        setState(() {
-          estimationLinks.removeAt(value);
-        });
-      },
+      // widget: TextFormField(
+      //   controller: sample1,
+      //   decoration: InputDecoration(
+      //       border: OutlineInputBorder(),
+      //       hintText: 'Add Links',
+      //       contentPadding: EdgeInsets.symmetric(horizontal: 10),
+      //       suffix: IconButton(
+      //         onPressed: () {
+      //           if (sample1.text != '')
+      //             setState(() {
+      //               if (!estimationLinks.contains(sample1.text)) {
+      //                 estimationLinks.add(sample1.text);
+      //                 sample1.clear();
+      //               }
+      //             });
+      //           print(estimationLinks);
+      //         },
+      //         icon: Icon(Icons.add_circle_rounded),
+      //       )),
+      // ),
+      // links: estimationLinks,
+      // removeLink: (int value) {
+      //   setState(() {
+      //     estimationLinks.removeAt(value);
+      //   });
+      // },
     );
   }
 
-  Widget filePicker(BuildContext context,
-      {@required String title,
-      @required List<File> file,
-      selectFile(),
-      Function(int) remove,
-      Function(int) removeLink,
-      Widget widget,
-      List<String> links}) {
+  Widget filePicker(
+    BuildContext context, {
+    @required String title,
+    @required List<File> file,
+    selectFile(),
+    Function(int) remove,
+    // Function(int) removeLink,
+    // Widget widget,
+    // List<String> links
+  }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -396,19 +430,19 @@ class _AddSiteState extends State<AddSite> {
                     },
                     child: Icon(Icons.cancel_sharp))
               ]),
-          if (widget != null) widget,
-          if (links != null)
-            if (links.isNotEmpty)
-              for (int i = 0; i < links.length; i++)
-                Row(children: [
-                  Container(
-                      margin: EdgeInsets.all(5), width: MediaQuery.of(context).size.width - 82, child: Text(links[i])),
-                  InkWell(
-                      onTap: () {
-                        removeLink(i);
-                      },
-                      child: Icon(Icons.cancel_sharp))
-                ]),
+          // if (widget != null) widget,
+          // if (links != null)
+          //   if (links.isNotEmpty)
+          //     for (int i = 0; i < links.length; i++)
+          //       Row(children: [
+          //         Container(
+          //             margin: EdgeInsets.all(5), width: MediaQuery.of(context).size.width - 82, child: Text(links[i])),
+          //         InkWell(
+          //             onTap: () {
+          //               removeLink(i);
+          //             },
+          //             child: Icon(Icons.cancel_sharp))
+          //       ]),
         ],
       ),
     );
@@ -457,6 +491,26 @@ class _AddSiteState extends State<AddSite> {
           controller: controller,
           minLines: minLine,
           maxLines: maxLine,
+          decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
+        ),
+      ]),
+    );
+  }
+
+  Widget numberField(
+      {@required String title,
+      @required TextEditingController controller,
+      num maxLength,
+      EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10)}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: <TextInputFormatter>[WhitelistingTextInputFormatter.digitsOnly],
+          maxLength: maxLength,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
         ),
       ]),

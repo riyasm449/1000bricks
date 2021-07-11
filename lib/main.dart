@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:thousandbricks/views/meeting/add-meeting.dart';
 import 'package:thousandbricks/views/site/add-site.dart';
 import 'package:thousandbricks/views/site/site-managment.dart';
 import 'package:thousandbricks/views/splashScreen.dart';
@@ -13,24 +14,11 @@ import 'providers/userProvider.dart';
 import 'views/home/home-page.dart';
 import 'views/loginScreen.dart';
 
-// const AndroidNotificationChannel channel = AndroidNotificationChannel(
-//     'high_importance_channel', // id
-//     'High Importance Notifications', // title
-//     'This channel is used for important notifications.', // description
-//     importance: Importance.high,
-//     playSound: true);
-//
-// final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-//
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-//   await Firebase.initializeApp();
-//   print('A bg message just showed up :  ${message.messageId}');
-// }
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // NotificationService.instance.start();
   await Firebase.initializeApp();
-
+  // FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   runApp(MyApp());
 }
 
@@ -55,6 +43,7 @@ class MyApp extends StatelessWidget {
             '/add-site': (BuildContext context) => AddSite(),
             '/supplier': (BuildContext context) => SupplierManagement(),
             '/add-supplier': (BuildContext context) => AddSupplier(),
+            '/add-meeting': (BuildContext context) => AddMeeting(),
           }),
     );
   }

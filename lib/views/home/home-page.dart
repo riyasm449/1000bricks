@@ -12,33 +12,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   UserProvider userProvider;
-
+  bool showSite = false;
+  bool showSupplier = false;
+  bool showMeeting = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
-    // var samp = _firebaseMessaging.getToken();
-    // print(samp);
-    // _firebaseMessaging.configure(
-    //   onMessage: (Map<String, dynamic> message) async {
-    //     print("onMessage: $message");
-    //     final notification = message['notification'];
-    //     print(notification);
-    //   },
-    //   onLaunch: (Map<String, dynamic> message) async {
-    //     print("onLaunch: $message");
-    //
-    //     final notification = message['data'];
-    //     print(notification);
-    //   },
-    //   onResume: (Map<String, dynamic> message) async {
-    //     print("onResume: $message");
-    //   },
-    // );
-    // if (Platform.isMacOS)
-    //   _firebaseMessaging
-    //       .requestNotificationPermissions(const IosNotificationSettings(sound: true, badge: true, alert: true));
   }
 
   @override
@@ -59,15 +40,97 @@ class _HomePageState extends State<HomePage> {
               SizedBox(height: 15),
               ListTile(
                 onTap: () {
-                  Navigator.pushNamed(context, '/site');
+                  setState(() {
+                    showSite = !showSite;
+                  });
                 },
-                title: Text('Site Management', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Site Management', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Icon(!showSite ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                      ],
+                    ),
+                    if (showSite)
+                      ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/site');
+                          },
+                          title: Text('Site Management', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+                    if (showSite)
+                      ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/add-site');
+                          },
+                          title: Text('Add site', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+                  ],
+                ),
               ),
               ListTile(
                 onTap: () {
-                  Navigator.pushNamed(context, '/supplier');
+                  setState(() {
+                    showSupplier = !showSupplier;
+                  });
                 },
-                title: Text('Supplier Management', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Supplier Management', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Icon(!showSupplier ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                      ],
+                    ),
+                    if (showSupplier)
+                      ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/supplier');
+                          },
+                          title:
+                              Text('Supplier Management', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+                    if (showSupplier)
+                      ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/add-supplier');
+                          },
+                          title: Text('Add supplier', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+                  ],
+                ),
+              ),
+              ListTile(
+                onTap: () {
+                  setState(() {
+                    showMeeting = !showMeeting;
+                  });
+                },
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Schedule Meeting', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Icon(!showMeeting ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                      ],
+                    ),
+                    if (showMeeting)
+                      ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/supplier');
+                          },
+                          title: Text('Meetings', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+                    if (showMeeting)
+                      ListTile(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/add-meeting');
+                          },
+                          title: Text('Add meeting', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
+                  ],
+                ),
               ),
             ],
           ),

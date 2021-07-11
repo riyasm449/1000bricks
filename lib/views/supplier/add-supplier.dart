@@ -1,5 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
+import 'package:thousandbricks/utils/commons.dart';
+import 'package:thousandbricks/utils/dio.dart';
 
 class AddSupplier extends StatefulWidget {
   @override
@@ -19,31 +23,55 @@ class _AddSupplierState extends State<AddSupplier> {
   TextEditingController address = TextEditingController();
   TextEditingController mail = TextEditingController();
 
-  // addForm() async {
-  //   List estimationFiles = [];
-  //   List renderFiles = [];
-  //   List drawingFiles = [];
-  //   print([estimationFiles, renderFiles, drawingFiles]);
-  //   Map<String, dynamic> mapData = {
-  //     'siteName': companyName,
-  //     'siteLocation': contactPerson,
-  //     'clientName': contactNumber,
-  //     'clientBillingAddress': alternateNumber,
-  //     'clientGST': GSTnumber,
-  //     'mailId': accNumber,
-  //     'category': category,
-  //     'estimationlink': estimationLinks,
-  //     'estimationfile': estimationFiles,
-  //     'renderlink': rendersLinks,
-  //     'renderfile': renderFiles,
-  //     'drawinglink': drawingsLinks,
-  //     'drawingfile': drawingFiles,
-  //     'start': startedOn,
-  //     'end': endedOn,
-  //     'status': status
-  //   };
-  //   FormData data = FormData.fromMap(mapData);
-  // }
+  bool isLoading = false;
+
+  addSupplier() async {
+    setState(() {
+      isLoading = true;
+    });
+    List estimationFiles = [];
+    List renderFiles = [];
+    List drawingFiles = [];
+    print([estimationFiles, renderFiles, drawingFiles]);
+    Map<String, dynamic> mapData = {
+      'companyName': companyName.text,
+      'contactPerson': contactPerson.text,
+      'contactNumber': contactNumber.text,
+      'alternateContactNumber': alternateNumber.text,
+      'eMail': mail.text,
+      'bankAccountDetails':
+          {'accNumber': accNumber.text, 'branch': bankBranch.text, 'name': bankName.text, 'ifsc': IFSC.text}.toString(),
+      'address': address.text,
+      'gstNumber': GSTnumber.text
+    };
+    FormData data = FormData.fromMap(mapData);
+    try {
+      var responce =
+          await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewSupplier.php', data: data);
+      print(responce);
+      clear();
+    } catch (e) {
+      print(e);
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  clear() {
+    contactNumber.clear();
+    contactPerson.clear();
+    companyName.clear();
+    alternateNumber.clear();
+    mail.clear();
+    accNumber.clear();
+    bankName.clear();
+    bankBranch.clear();
+    IFSC.clear();
+    address.clear();
+    GSTnumber.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,51 +80,53 @@ class _AddSupplierState extends State<AddSupplier> {
         title: Text('Add Supplier', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            textWidget(title: 'Company Name', controller: companyName),
-            textWidget(title: 'Contact Person', controller: contactPerson),
-            textWidget(title: 'Contact Number', controller: contactNumber),
-            textWidget(title: 'Alternate Contact Number', controller: contactNumber),
-            textWidget(title: 'Mail Id', controller: mail),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              child: Text('Bank Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               child: Column(
                 children: [
-                  textWidget(title: 'Account Number', controller: accNumber),
-                  textWidget(title: 'Bank Name', controller: bankName),
-                  textWidget(title: 'Bank Branch', controller: bankBranch),
-                  textWidget(title: 'IFSC Code', controller: IFSC),
+                  textWidget(title: 'Company Name', controller: companyName),
+                  textWidget(title: 'Contact Person', controller: contactPerson),
+                  textWidget(title: 'Contact Number', controller: contactNumber),
+                  textWidget(title: 'Alternate Contact Number', controller: alternateNumber),
+                  textWidget(title: 'Mail Id', controller: mail),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                    child: Text('Bank Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration:
+                        BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+                    child: Column(
+                      children: [
+                        textWidget(title: 'Account Number', controller: accNumber),
+                        textWidget(title: 'Bank Name', controller: bankName),
+                        textWidget(title: 'Bank Branch', controller: bankBranch),
+                        textWidget(title: 'IFSC Code', controller: IFSC),
+                      ],
+                    ),
+                  ),
+                  textWidget(
+                      title: 'Billing Address',
+                      controller: address,
+                      minLine: 5,
+                      maxLine: 8,
+                      padding: const EdgeInsets.all(10)),
+                  textWidget(title: 'Client GST', controller: GSTnumber),
+                  RaisedButton.icon(
+                      onPressed: () {
+                        addSupplier();
+                      },
+                      icon: Icon(Icons.save),
+                      label: Text("ADD SUPPLIER"),
+                      color: Commons.bgColor,
+                      colorBrightness: Brightness.dark)
                 ],
               ),
             ),
-            textWidget(
-                title: 'Billing Address',
-                controller: address,
-                minLine: 5,
-                maxLine: 8,
-                padding: const EdgeInsets.all(10)),
-            textWidget(title: 'Client GST', controller: GSTnumber),
-
-            // RaisedButton.icon(
-            //     onPressed: () {
-            //       addForm();
-            //     },
-            //     icon: Icon(Icons.save),
-            //     label: Text("ADD"),
-            //     color: Commons.bgColor,
-            //     colorBrightness: Brightness.dark)
-          ],
-        ),
-      ),
     );
   }
 
@@ -133,6 +163,26 @@ class _AddSupplierState extends State<AddSupplier> {
           controller: controller,
           minLines: minLine,
           maxLines: maxLine,
+          decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
+        ),
+      ]),
+    );
+  }
+
+  Widget numberField(
+      {@required String title,
+      @required TextEditingController controller,
+      num maxLength,
+      EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10)}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: <TextInputFormatter>[WhitelistingTextInputFormatter.digitsOnly],
+          maxLength: maxLength,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
         ),
       ]),
