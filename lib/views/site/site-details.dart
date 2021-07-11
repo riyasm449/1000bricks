@@ -30,13 +30,17 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
   String projectStartedOn;
   String estimatedCompletionOfProject;
   String statusOfProject;
+  List<EstimationAndBoqFile> estimationAndBoqFile;
+  List<ThreeDRenderFile> threeDRendersFile;
+  List<DrawingFile> drawingsFile;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => getAllSites());
+    WidgetsBinding.instance.addPostFrameCallback((_) => getSiteDetails());
   }
 
-  void getAllSites() async {
+  void getSiteDetails() async {
     setState(() {
       isLoading = true;
     });
@@ -58,6 +62,9 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
           projectStartedOn = siteDetails.data[0].projectStartedOn;
           estimatedCompletionOfProject = siteDetails.data[0].estimatedCompletionOfProject;
           statusOfProject = siteDetails.data[0].statusOfProject;
+          estimationAndBoqFile = siteDetails.data[0].estimationAndBoqFile;
+          threeDRendersFile = siteDetails.data[0].threeDRendersFile;
+          drawingsFile = siteDetails.data[0].drawingsFile;
         }
       });
       print(responce);
@@ -95,12 +102,13 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
         String percentage = (sent / total * 100).toStringAsFixed(2);
         setState(() {
           progress = "$sent" + " Bytes of " "$total Bytes - " + percentage + " % uploaded";
-          //update the progress
         });
       });
-      getAllSites();
+      Commons.snackBar(scaffoldKey, 'Updated Site Details Successfully');
+      getSiteDetails();
       print(responce);
     } catch (e) {
+      Commons.snackBar(scaffoldKey, 'Currently facing some Issue');
       print(e);
     }
     setState(() {
@@ -111,6 +119,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: Text('Site Details', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -170,21 +179,40 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                           onChange: (String value) {
                             setState(() => clientGst = value);
                           }),
-                      FlatButton(
-                          color: Commons.bgColor,
-                          onPressed: () {
-                            editData();
-                          },
-                          child: Text(
-                            'Edit',
-                            style: TextStyle(color: Colors.white),
-                          ))
+                      if (widget.edit)
+                        FlatButton(
+                            color: Commons.bgColor,
+                            onPressed: () {
+                              editData();
+                            },
+                            child: Text(
+                              'Edit',
+                              style: TextStyle(color: Colors.white),
+                            )),
+                      if (estimationAndBoqFile != null)
+                        for (int i = 0; i < estimationAndBoqFile.length; i++)
+                          Column(
+                            children: [
+                              Text(getFileName(estimationAndBoqFile[i].fileUrl)),
+                              Text(getFileType(estimationAndBoqFile[i].fileUrl))
+                            ],
+                          )
                     ],
                   )
           ],
         ),
       ),
     );
+  }
+
+  String getFileName(String data) {
+    List<String> url = data.split("/");
+    return url[url.length - 1];
+  }
+
+  String getFileType(String data) {
+    List<String> url = data.split(".");
+    return url[url.length - 1];
   }
 
   Widget textWidget(

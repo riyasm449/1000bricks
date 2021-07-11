@@ -15,6 +15,7 @@ class AddSite extends StatefulWidget {
 }
 
 class _AddSiteState extends State<AddSite> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   TextEditingController siteName = TextEditingController();
   TextEditingController siteLocation = TextEditingController();
   TextEditingController clientName = TextEditingController();
@@ -140,7 +141,6 @@ class _AddSiteState extends State<AddSite> {
     }
     print([estimationFiles, renderFiles, drawingFiles]);
 
-    ///todo phone Number
     Map<String, dynamic> mapData = {
       'siteName': siteName.text,
       'siteLocation': siteLocation.text,
@@ -167,12 +167,13 @@ class _AddSiteState extends State<AddSite> {
         String percentage = (sent / total * 100).toStringAsFixed(2);
         setState(() {
           progress = "$sent" + " Bytes of " "$total Bytes - " + percentage + " % uploaded";
-          //update the progress
         });
-        clear();
       });
+      Commons.snackBar(scaffoldKey, 'Site Added');
+      clear();
       print(responce);
     } catch (e) {
+      Commons.snackBar(scaffoldKey, 'Currently facing some problem');
       print(e);
     }
 
@@ -184,6 +185,7 @@ class _AddSiteState extends State<AddSite> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: Text('Add Site', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         centerTitle: true,

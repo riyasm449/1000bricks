@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
-import 'package:thousandbricks/views/site/site-details.dart';
+import 'package:thousandbricks/views/supplier/supplier-details.dart';
 
 class SupplierManagement extends StatefulWidget {
   @override
@@ -15,7 +15,8 @@ class SupplierManagement extends StatefulWidget {
 class _SupplierManagementState extends State<SupplierManagement> {
   bool isLoading = false;
   String progress;
-  Suppliers sites;
+  Suppliers suppliers;
+
   @override
   void initState() {
     super.initState();
@@ -32,7 +33,7 @@ class _SupplierManagementState extends State<SupplierManagement> {
       );
       print(responce);
       setState(() {
-        sites = Suppliers.fromJson(jsonDecode(responce.data));
+        suppliers = Suppliers.fromJson(jsonDecode(responce.data));
       });
     } catch (e) {
       print(e);
@@ -64,21 +65,22 @@ class _SupplierManagementState extends State<SupplierManagement> {
                       tableTitle('View', bold: true),
                       tableTitle('Edit', bold: true),
                     ]),
-                    if (!isLoading && sites != null)
-                      if (sites.data?.isNotEmpty)
-                        for (int index = 0; index < sites.data.length; index++)
+                    if (!isLoading && suppliers != null)
+                      if (suppliers.data?.isNotEmpty)
+                        for (int index = 0; index < suppliers.data.length; index++)
                           TableRow(children: [
-                            tableTitle(sites.data[index].companyName,
+                            tableTitle(suppliers.data[index].companyName,
                                 textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
-                            tableTitle(sites.data[index].address, textColor: Colors.black),
+                            tableTitle(suppliers.data[index].address, textColor: Colors.black),
                             Center(
                                 child: IconButton(
                                     onPressed: () {
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  SiteDetailsPage(id: sites.data[index].id)));
+                                              builder: (BuildContext context) => SupplierDetailsPage(
+                                                    id: suppliers.data[index].id,
+                                                  )));
                                     },
                                     icon: Icon(Icons.remove_red_eye))),
                             Center(
@@ -87,8 +89,10 @@ class _SupplierManagementState extends State<SupplierManagement> {
                                       Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  SiteDetailsPage(id: sites.data[index].id, edit: true)));
+                                              builder: (BuildContext context) => SupplierDetailsPage(
+                                                    id: suppliers.data[index].id,
+                                                    edit: true,
+                                                  )));
                                     },
                                     icon: Icon(Icons.edit)))
                           ]),
@@ -101,9 +105,14 @@ class _SupplierManagementState extends State<SupplierManagement> {
   }
 
   Widget tableTitle(String title, {Color textColor, bool bold = false, Color color}) {
-    return Text(title,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-            fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.w400, color: textColor ?? Commons.bgColor));
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      constraints: BoxConstraints(minHeight: 40),
+      alignment: Alignment.center,
+      child: Text(title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.w400, color: textColor ?? Commons.bgColor)),
+    );
   }
 }

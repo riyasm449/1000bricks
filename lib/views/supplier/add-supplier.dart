@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -22,6 +25,8 @@ class _AddSupplierState extends State<AddSupplier> {
   TextEditingController bankBranch = TextEditingController();
   TextEditingController address = TextEditingController();
   TextEditingController mail = TextEditingController();
+  Suppliers suppliers;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
 
   bool isLoading = false;
 
@@ -29,10 +34,6 @@ class _AddSupplierState extends State<AddSupplier> {
     setState(() {
       isLoading = true;
     });
-    List estimationFiles = [];
-    List renderFiles = [];
-    List drawingFiles = [];
-    print([estimationFiles, renderFiles, drawingFiles]);
     Map<String, dynamic> mapData = {
       'companyName': companyName.text,
       'contactPerson': contactPerson.text,
@@ -48,9 +49,14 @@ class _AddSupplierState extends State<AddSupplier> {
     try {
       var responce =
           await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewSupplier.php', data: data);
+      setState(() {
+        suppliers = Suppliers.fromJson(jsonDecode(responce.data));
+      });
+      Commons.snackBar(scaffoldKey, 'Added Successfully...');
       print(responce);
       clear();
     } catch (e) {
+      Commons.snackBar(scaffoldKey, 'Currently Facing Some Issue!!!');
       print(e);
     }
 
@@ -76,6 +82,7 @@ class _AddSupplierState extends State<AddSupplier> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title: Text('Add Supplier', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -162,6 +169,7 @@ class _AddSupplierState extends State<AddSupplier> {
         TextFormField(
           controller: controller,
           minLines: minLine,
+          // enabled: !widget.showDatails,
           maxLines: maxLine,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
         ),
@@ -181,6 +189,7 @@ class _AddSupplierState extends State<AddSupplier> {
         TextFormField(
           controller: controller,
           keyboardType: TextInputType.number,
+          // enabled: !widget.showDatails,
           inputFormatters: <TextInputFormatter>[WhitelistingTextInputFormatter.digitsOnly],
           maxLength: maxLength,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),

@@ -18,6 +18,7 @@ class _AddMeetingState extends State<AddMeeting> {
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay(hour: 00, minute: 00);
   final firestoreInstance = FirebaseFirestore.instance;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   bool isLoading = false;
 
   ///
@@ -43,6 +44,7 @@ class _AddMeetingState extends State<AddMeeting> {
       }).then((value) {
         print(value.id);
       });
+      Commons.snackBar(scaffoldKey, 'Meeting Added');
       clear();
     } catch (e) {
       print(e);
@@ -112,6 +114,7 @@ class _AddMeetingState extends State<AddMeeting> {
     _height = MediaQuery.of(context).size.height;
     _width = MediaQuery.of(context).size.width;
     return Scaffold(
+        key: scaffoldKey,
         appBar: AppBar(
           title: Text('Add Meeting', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
           centerTitle: true,

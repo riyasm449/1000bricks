@@ -19,6 +19,10 @@ class Commons {
     return Color(int.parse(buffer.toString(), radix: 16));
   }
 
+  static void snackBar(GlobalKey<ScaffoldState> scaffoldKey, message) {
+    scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   // static Widget topBar(BuildContext context) {
   //   return Stack(
   //     children: [

@@ -1,13 +1,13 @@
 class Suppliers {
-  List<Data> data;
+  List<SupplierData> data;
 
   Suppliers({this.data});
 
   Suppliers.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
-      data = new List<Data>();
+      data = new List<SupplierData>();
       json['data'].forEach((v) {
-        data.add(new Data.fromJson(v));
+        data.add(new SupplierData.fromJson(v));
       });
     }
   }
@@ -21,7 +21,7 @@ class Suppliers {
   }
 }
 
-class Data {
+class SupplierData {
   String id;
   String companyName;
   String contactPerson;
@@ -32,7 +32,7 @@ class Data {
   String address;
   String gstNumber;
 
-  Data(
+  SupplierData(
       {this.id,
       this.companyName,
       this.contactPerson,
@@ -43,7 +43,7 @@ class Data {
       this.address,
       this.gstNumber});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  SupplierData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     companyName = json['companyName'];
     contactPerson = json['contactPerson'];

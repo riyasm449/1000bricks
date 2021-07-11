@@ -1,22 +1,24 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:thousandbricks/models/sites.dart';
+import 'package:thousandbricks/models/expenses.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
-import 'package:thousandbricks/views/site/site-details.dart';
+import 'package:thousandbricks/views/expence/add-expence.dart';
 
-class SiteManagement extends StatefulWidget {
+class ExpenseManagement extends StatefulWidget {
   @override
-  _SiteManagementState createState() => _SiteManagementState();
+  _ExpenseManagementState createState() => _ExpenseManagementState();
 }
 
-class _SiteManagementState extends State<SiteManagement> {
+class _ExpenseManagementState extends State<ExpenseManagement> {
   bool isLoading = false;
   String progress;
-  Sites sites;
+  Expenses expenses;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -28,13 +30,36 @@ class _SiteManagementState extends State<SiteManagement> {
       isLoading = true;
     });
     try {
+      expenses = null;
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=all',
+        'http://1000bricks.meatmatestore.in/thousandBricksApi/getExpenseDetails.php?type=all',
       );
+      print(responce);
       setState(() {
-        sites = Sites.fromJson(jsonDecode(responce.data));
+        expenses = Expenses.fromJson(jsonDecode(responce.data));
       });
     } catch (e) {
+      print(e);
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  void deleteData(String id) async {
+    setState(() {
+      isLoading = true;
+    });
+    FormData data = FormData.fromMap({'id': id});
+    try {
+      var responce = await dio.post(
+          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateExpenseDetails.php?type=deleteExpense',
+          data: data);
+      print(responce);
+      Commons.snackBar(scaffoldKey, 'Deleted Successfully');
+      getAllSites();
+    } catch (e) {
+      Commons.snackBar(scaffoldKey, 'Currently Facing some Problem');
       print(e);
     }
     setState(() {
@@ -45,9 +70,10 @@ class _SiteManagementState extends State<SiteManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
         title:
-            Text('Site Management', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+            Text('Income Management', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -60,17 +86,17 @@ class _SiteManagementState extends State<SiteManagement> {
                   children: [
                     TableRow(children: [
                       tableTitle('Site Name', bold: true),
-                      tableTitle('Site Location', bold: true),
+                      tableTitle(' Credit Amount ', bold: true),
                       tableTitle('View', bold: true),
-                      tableTitle('Edit', bold: true),
+                      tableTitle('Delete', bold: true),
                     ]),
-                    if (!isLoading && sites != null)
-                      if (sites.data?.isNotEmpty)
-                        for (int index = 0; index < sites.data.length; index++)
+                    if (!isLoading && expenses != null)
+                      if (expenses.data?.isNotEmpty)
+                        for (int index = 0; index < expenses.data.length; index++)
                           TableRow(children: [
-                            tableTitle(sites.data[index].siteName,
+                            tableTitle(expenses.data[index].expenseBy,
                                 textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
-                            tableTitle(sites.data[index].siteLocation, textColor: Colors.black),
+                            tableTitle(expenses.data[index].expenseAmount, textColor: Colors.black),
                             Center(
                                 child: IconButton(
                                     onPressed: () {
@@ -78,19 +104,15 @@ class _SiteManagementState extends State<SiteManagement> {
                                           context,
                                           MaterialPageRoute(
                                               builder: (BuildContext context) =>
-                                                  SiteDetailsPage(id: sites.data[index].id)));
+                                                  AddExpencePage(expence: expenses.data[index])));
                                     },
                                     icon: Icon(Icons.remove_red_eye))),
                             Center(
                                 child: IconButton(
                                     onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  SiteDetailsPage(id: sites.data[index].id, edit: true)));
+                                      deleteData(expenses.data[index].id);
                                     },
-                                    icon: Icon(Icons.edit)))
+                                    icon: Icon(Icons.delete)))
                           ]),
                   ]),
             ),
