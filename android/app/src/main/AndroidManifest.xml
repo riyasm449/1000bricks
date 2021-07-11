@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mohamedriyas.thousandbricks">
+   <uses-permission android:name="android.permission.INTERNET"/>
    <application
         android:label="1000 Bricks"
         android:icon="@mipmap/ic_launcher">
