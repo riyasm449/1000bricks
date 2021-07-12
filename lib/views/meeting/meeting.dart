@@ -33,7 +33,7 @@ class _MeetingsManagementState extends State<MeetingsManagement> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  List<TableRow> list = snapshot.data.documents.map((doc) {
+                  List<TableRow> list = snapshot.data.docs.map((doc) {
                     return TableRow(children: [
                       tableTitle(doc['dateTime'].toString().substring(0, 10)),
                       tableTitle(doc['description']),

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/userProvider.dart';
@@ -22,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> checkLoginStatus() async {
     if (authProvider.auth.currentUser != null) {
-      await userProvider.getUserDetails(authProvider.auth.currentUser.uid);
+      await userProvider.getUserDetails(FirebaseAuth.instance.currentUser.uid);
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       Navigator.pushReplacementNamed(context, '/login');

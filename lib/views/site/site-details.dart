@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/site-details.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
@@ -19,6 +22,7 @@ class SiteDetailsPage extends StatefulWidget {
 
 class _SiteDetailsPageState extends State<SiteDetailsPage> {
   bool isLoading = false;
+  bool isDownLoading = false;
   String progress;
   SiteDetails siteDetails;
   String siteName;
@@ -36,10 +40,14 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
   List<ThreeDRenderFile> threeDRendersFile;
   List<DrawingFile> drawingsFile;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
+  Directory dir;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => getSiteDetails());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      dir = await getApplicationDocumentsDirectory();
+    });
   }
 
   void getSiteDetails() async {
@@ -127,151 +135,208 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
         title: Text('Site Details', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            if (isLoading)
-              Center(child: Padding(padding: const EdgeInsets.all(8.0), child: CircularProgressIndicator())),
-            if (siteDetails != null)
-              if (siteDetails.data != null)
-                if (siteDetails.data.isNotEmpty)
-                  Column(
-                    children: [
-                      textWidget(
-                          title: 'Site Name',
-                          controller: siteName,
-                          onChange: (String value) {
-                            setState(() => siteName = value);
-                          }),
-                      textWidget(
-                          title: 'Site Location',
-                          controller: siteLocation,
-                          onChange: (String value) {
-                            setState(() => siteLocation = value);
-                          }),
-                      textWidget(
-                          title: 'Client Name',
-                          controller: clientName,
-                          onChange: (String value) {
-                            setState(() => clientName = value);
-                          }),
-                      textWidget(
-                          title: 'Client Billing Address',
-                          controller: clientBillingAddress,
-                          minLine: 5,
-                          maxLine: 8,
-                          padding: const EdgeInsets.all(10),
-                          onChange: (String value) {
-                            setState(() => clientBillingAddress = value);
-                          }),
-                      numberField(
-                          title: 'Phone Number',
-                          controller: mobileNumber,
-                          onChange: (String value) {
-                            setState(() => mobileNumber = value);
-                          }),
-                      textWidget(
-                          title: 'Mail Id',
-                          controller: contactMailId,
-                          onChange: (String value) {
-                            setState(() => contactMailId = value);
-                          }),
-                      textWidget(
-                          title: 'Client GST',
-                          controller: clientGst,
-                          onChange: (String value) {
-                            setState(() => clientGst = value);
-                          }),
-                      if (widget.edit)
-                        FlatButton(
-                            color: Commons.bgColor,
-                            onPressed: () {
-                              editData(context);
-                            },
-                            child: Text(
-                              'Edit',
-                              style: TextStyle(color: Colors.white),
-                            )),
+      body: isLoading
+          ? Center(child: Padding(padding: const EdgeInsets.all(8.0), child: CircularProgressIndicator()))
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (siteDetails != null)
+                    if (siteDetails.data != null)
+                      if (siteDetails.data.isNotEmpty)
+                        Column(
+                          children: [
+                            textWidget(
+                                title: 'Site Name',
+                                controller: siteName,
+                                onChange: (String value) {
+                                  setState(() => siteName = value);
+                                }),
+                            textWidget(
+                                title: 'Site Location',
+                                controller: siteLocation,
+                                onChange: (String value) {
+                                  setState(() => siteLocation = value);
+                                }),
+                            textWidget(
+                                title: 'Client Name',
+                                controller: clientName,
+                                onChange: (String value) {
+                                  setState(() => clientName = value);
+                                }),
+                            textWidget(
+                                title: 'Client Billing Address',
+                                controller: clientBillingAddress,
+                                minLine: 5,
+                                maxLine: 8,
+                                padding: const EdgeInsets.all(10),
+                                onChange: (String value) {
+                                  setState(() => clientBillingAddress = value);
+                                }),
+                            numberField(
+                                title: 'Phone Number',
+                                controller: mobileNumber,
+                                onChange: (String value) {
+                                  setState(() => mobileNumber = value);
+                                }),
+                            textWidget(
+                                title: 'Mail Id',
+                                controller: contactMailId,
+                                onChange: (String value) {
+                                  setState(() => contactMailId = value);
+                                }),
+                            textWidget(
+                                title: 'Client GST',
+                                controller: clientGst,
+                                onChange: (String value) {
+                                  setState(() => clientGst = value);
+                                }),
+                            if (widget.edit)
+                              FlatButton(
+                                  color: Commons.bgColor,
+                                  onPressed: () {
+                                    editData(context);
+                                  },
+                                  child: Text(
+                                    'Edit',
+                                    style: TextStyle(color: Colors.white),
+                                  )),
+                            if (isDownLoading)
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(15),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  Text(progress ?? '', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))
+                                ],
+                              )
+                            else
+                              Column(
+                                children: [
+                                  /// estimation
+                                  if (estimationAndBoqFile != null)
+                                    if (estimationAndBoqFile.isNotEmpty)
+                                      Container(
+                                          width: MediaQuery.of(context).size.width,
+                                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                                          child: Text('Estimation and BOQ Files',
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                  if (estimationAndBoqFile != null)
+                                    if (estimationAndBoqFile.isNotEmpty)
+                                      gridCard(<Widget>[
+                                        for (int i = 0; i < estimationAndBoqFile.length; i++)
+                                          gridItem(estimationAndBoqFile[i].fileUrl)
+                                      ]),
 
-                      /// estimation
-                      if (estimationAndBoqFile != null)
-                        if (estimationAndBoqFile.isNotEmpty)
-                          Container(
-                              width: MediaQuery.of(context).size.width,
-                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                              child: Text('Estimation and BOQ Files',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-                      if (estimationAndBoqFile != null)
-                        if (estimationAndBoqFile.isNotEmpty)
-                          gridCard(<Widget>[
-                            for (int i = 0; i < estimationAndBoqFile.length; i++)
-                              gridItem(estimationAndBoqFile[i].fileUrl)
-                          ]),
+                                  /// 3d renders
+                                  if (threeDRendersFile != null)
+                                    if (threeDRendersFile.isNotEmpty)
+                                      Container(
+                                          width: MediaQuery.of(context).size.width,
+                                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                                          child: Text('3D Render Files',
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                  if (threeDRendersFile != null)
+                                    if (threeDRendersFile.isNotEmpty)
+                                      gridCard(<Widget>[
+                                        for (int i = 0; i < threeDRendersFile.length; i++)
+                                          gridItem(threeDRendersFile[i].fileUrl)
+                                      ]),
 
-                      /// 3d renders
-                      if (threeDRendersFile != null)
-                        if (threeDRendersFile.isNotEmpty)
-                          Container(
-                              width: MediaQuery.of(context).size.width,
-                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                              child:
-                                  Text('3D Render Files', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-                      if (threeDRendersFile != null)
-                        if (threeDRendersFile.isNotEmpty)
-                          gridCard(<Widget>[
-                            for (int i = 0; i < threeDRendersFile.length; i++) gridItem(threeDRendersFile[i].fileUrl)
-                          ]),
-
-                      /// drawings
-                      if (drawingsFile != null)
-                        if (drawingsFile.isNotEmpty)
-                          Container(
-                              width: MediaQuery.of(context).size.width,
-                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                              child: Text('Estimation and BOQ Files',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-                      if (drawingsFile != null)
-                        if (drawingsFile.isNotEmpty)
-                          gridCard(<Widget>[
-                            for (int i = 0; i < drawingsFile.length; i++) gridItem(drawingsFile[i].fileUrl)
-                          ]),
-                    ],
-                  )
-          ],
-        ),
-      ),
+                                  /// drawings
+                                  if (drawingsFile != null)
+                                    if (drawingsFile.isNotEmpty)
+                                      Container(
+                                          width: MediaQuery.of(context).size.width,
+                                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                                          child: Text('Estimation and BOQ Files',
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                                  if (drawingsFile != null)
+                                    if (drawingsFile.isNotEmpty)
+                                      gridCard(<Widget>[
+                                        for (int i = 0; i < drawingsFile.length; i++) gridItem(drawingsFile[i].fileUrl)
+                                      ]),
+                                ],
+                              )
+                          ],
+                        )
+                ],
+              ),
+            ),
     );
   }
 
-  // Future<Directory> _getDownloadDirectory() async {
-  //   if (Platform.isAndroid) {
-  //     return await DownloadsPathProvider.downloadsDirectory;
-  //   }
-  //
-  //   return await getApplicationDocumentsDirectory();
-  // }
+  Widget gridItem(String _url) {
+    String url = 'http://$_url';
+    Dio _dio = Dio();
 
-  Widget gridItem(String url) {
+    String path = "${dir.path}/${getFileName(url)}";
+    bool isFileExists = File(path).existsSync();
     return InkWell(
       onTap: () async {
-        // final response = await dio.download(
-        //   url,
-        // );
-        print(url);
-        // Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => FilesWebView(url: url)));
+        if (!isDownLoading) {
+          setState(() {
+            isDownLoading = true;
+          });
+          try {
+            if (!isFileExists) {
+              print('true');
+              await _dio.download(url, path, onReceiveProgress: (rec, total) {
+                print("Rec: $rec , Total: $total");
+
+                setState(() {
+                  progress = ((rec / total) * 100).toStringAsFixed(0) + "% Downloaded";
+                });
+              });
+              await OpenFile.open(path);
+            } else {
+              await OpenFile.open(path);
+            }
+          } catch (e) {
+            print(e);
+          }
+          setState(() {
+            isDownLoading = false;
+          });
+          print(url);
+        }
       },
       child: Stack(
         alignment: Alignment.center,
         children: [
           Container(
-            decoration: BoxDecoration(color: Colors.blueGrey.withOpacity(.3), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color: !isFileExists ? Colors.blueGrey.withOpacity(.6) : Colors.grey.withOpacity(.6),
+                borderRadius: BorderRadius.circular(8)),
           ),
           Text(getFileType(url) + ' file', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           Positioned(
-            bottom: 10,
+            top: 10,
             right: 5,
             left: 5,
-            child: Text(getFileName(url), style: TextStyle(color: Colors.white, fontSize: 9)),
+            child: !isFileExists
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.download,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      Text('Download', style: TextStyle(color: Colors.white, fontSize: 9)),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.remove_red_eye,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                      Text('View', style: TextStyle(color: Colors.white, fontSize: 9)),
+                    ],
+                  ),
           ),
         ],
       ),

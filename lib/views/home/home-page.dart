@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context, snapshot) {
         List list = [];
         if (snapshot.hasData) {
-          list = snapshot.data.documents.map((doc) {
+          list = snapshot.data.docs.map((doc) {
             return doc['dateTime'];
           }).toList();
           return Stack(
