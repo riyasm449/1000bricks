@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
+import 'package:provider/provider.dart';
+import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -119,7 +121,7 @@ class _AddSiteState extends State<AddSite> {
 
   bool isLoading = false;
 
-  addForm() async {
+  addForm(BuildContext context) async {
     List estimationFiles = [];
     List renderFiles = [];
     List drawingFiles = [];
@@ -170,6 +172,7 @@ class _AddSiteState extends State<AddSite> {
         });
       });
       Commons.snackBar(scaffoldKey, 'Site Added');
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       clear();
       print(responce);
     } catch (e) {
@@ -236,7 +239,7 @@ class _AddSiteState extends State<AddSite> {
                       title: 'Status Of Project'),
                   RaisedButton.icon(
                       onPressed: () {
-                        addForm();
+                        addForm(context);
                       },
                       icon: Icon(Icons.save),
                       label: Text("ADD"),

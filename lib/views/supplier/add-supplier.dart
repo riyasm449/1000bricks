@@ -4,7 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/suppliers.dart';
+import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -53,6 +55,7 @@ class _AddSupplierState extends State<AddSupplier> {
         suppliers = Suppliers.fromJson(jsonDecode(responce.data));
       });
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       print(responce);
       clear();
     } catch (e) {

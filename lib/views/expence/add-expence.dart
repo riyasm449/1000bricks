@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/expenses.dart';
 import 'package:thousandbricks/models/sites.dart';
+import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -60,6 +62,7 @@ class _AddExpencePageState extends State<AddExpencePage> {
           await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewExpenses.php', data: data);
       Commons.snackBar(scaffoldKey, 'Expense Added');
       clear();
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       print(responce);
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently Facing Some Error');

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/site-details.dart';
+import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -76,7 +78,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
     });
   }
 
-  editData() async {
+  editData(BuildContext context) async {
     setState(() {
       isLoading = true;
     });
@@ -106,6 +108,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
       });
       Commons.snackBar(scaffoldKey, 'Updated Site Details Successfully');
       getSiteDetails();
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       print(responce);
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently facing some Issue');
@@ -183,26 +186,108 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                         FlatButton(
                             color: Commons.bgColor,
                             onPressed: () {
-                              editData();
+                              editData(context);
                             },
                             child: Text(
                               'Edit',
                               style: TextStyle(color: Colors.white),
                             )),
+
+                      /// estimation
                       if (estimationAndBoqFile != null)
-                        for (int i = 0; i < estimationAndBoqFile.length; i++)
-                          Column(
-                            children: [
-                              Text(getFileName(estimationAndBoqFile[i].fileUrl)),
-                              Text(getFileType(estimationAndBoqFile[i].fileUrl))
-                            ],
-                          )
+                        if (estimationAndBoqFile.isNotEmpty)
+                          Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                              child: Text('Estimation and BOQ Files',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                      if (estimationAndBoqFile != null)
+                        if (estimationAndBoqFile.isNotEmpty)
+                          gridCard(<Widget>[
+                            for (int i = 0; i < estimationAndBoqFile.length; i++)
+                              gridItem(estimationAndBoqFile[i].fileUrl)
+                          ]),
+
+                      /// 3d renders
+                      if (threeDRendersFile != null)
+                        if (threeDRendersFile.isNotEmpty)
+                          Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                              child:
+                                  Text('3D Render Files', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                      if (threeDRendersFile != null)
+                        if (threeDRendersFile.isNotEmpty)
+                          gridCard(<Widget>[
+                            for (int i = 0; i < threeDRendersFile.length; i++) gridItem(threeDRendersFile[i].fileUrl)
+                          ]),
+
+                      /// drawings
+                      if (drawingsFile != null)
+                        if (drawingsFile.isNotEmpty)
+                          Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                              child: Text('Estimation and BOQ Files',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                      if (drawingsFile != null)
+                        if (drawingsFile.isNotEmpty)
+                          gridCard(<Widget>[
+                            for (int i = 0; i < drawingsFile.length; i++) gridItem(drawingsFile[i].fileUrl)
+                          ]),
                     ],
                   )
           ],
         ),
       ),
     );
+  }
+
+  // Future<Directory> _getDownloadDirectory() async {
+  //   if (Platform.isAndroid) {
+  //     return await DownloadsPathProvider.downloadsDirectory;
+  //   }
+  //
+  //   return await getApplicationDocumentsDirectory();
+  // }
+
+  Widget gridItem(String url) {
+    return InkWell(
+      onTap: () async {
+        // final response = await dio.download(
+        //   url,
+        // );
+        print(url);
+        // Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => FilesWebView(url: url)));
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(color: Colors.blueGrey.withOpacity(.3), borderRadius: BorderRadius.circular(8)),
+          ),
+          Text(getFileType(url) + ' file', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          Positioned(
+            bottom: 10,
+            right: 5,
+            left: 5,
+            child: Text(getFileName(url), style: TextStyle(color: Colors.white, fontSize: 9)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget gridCard(List<Widget> list) {
+    return GridView.count(
+        primary: false,
+        padding: const EdgeInsets.all(20),
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        crossAxisCount: 3,
+        children: list ?? []);
   }
 
   String getFileName(String data) {

@@ -4,7 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/income.dart';
+import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 import 'package:thousandbricks/views/income/add-income.dart';
@@ -57,6 +59,7 @@ class _IncomeManagementState extends State<IncomeManagement> {
           data: data);
       print(responce);
       Commons.snackBar(scaffoldKey, 'Deleted Successfully');
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       getAllIncome();
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently Facing some Problem');

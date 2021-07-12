@@ -5,7 +5,7 @@ import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/views/expence/add-expence.dart';
 import 'package:thousandbricks/views/expence/expence.dart';
 import 'package:thousandbricks/views/income/add-income.dart';
-import 'package:thousandbricks/views/income/imcome.dart';
+import 'package:thousandbricks/views/income/income.dart';
 import 'package:thousandbricks/views/meeting/add-meeting.dart';
 import 'package:thousandbricks/views/meeting/meeting.dart';
 import 'package:thousandbricks/views/site/add-site.dart';
@@ -59,10 +59,4 @@ class MyApp extends StatelessWidget {
           }),
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   // TODO: implement build
-  //   throw UnimplementedError();
-  // }
 }
