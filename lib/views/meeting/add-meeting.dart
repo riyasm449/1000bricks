@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
+import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:thousandbricks/utils/commons.dart';
@@ -23,7 +25,7 @@ class _AddMeetingState extends State<AddMeeting> {
 
   ///
   String dateTime;
-  String meetingType;
+  String meetingType = 'Meet in Person';
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
   TextEditingController location = TextEditingController();
@@ -44,14 +46,48 @@ class _AddMeetingState extends State<AddMeeting> {
       }).then((value) {
         print(value.id);
       });
+      await sendNotification(dateController.text, timeController.text, dt, meetingType);
       Commons.snackBar(scaffoldKey, 'Meeting Added');
-      clear();
     } catch (e) {
       print(e);
     }
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future<void> sendNotification(String date, String time, DateTime dt, String type) async {
+    String token = await FirebaseMessaging.instance.getToken();
+    print(token);
+    Map<String, dynamic> data = {
+      "to": "/topics/meeting",
+      "notification": {
+        "body": "You have an $type Meeting on $date $time",
+        "title": "Meeting - 1000 Bricks",
+        "isScheduled": "true",
+        "scheduledTime": dt.toString(),
+      },
+      "data": {
+        "click_action": "FLUTTER_NOTIFICATION_CLICK",
+      },
+    };
+
+    BaseOptions options = new BaseOptions(
+      connectTimeout: 5000,
+      receiveTimeout: 3000,
+      headers: {
+        'content-type': 'application/json',
+        'Authorization':
+            'key=AAAABNOsw0M:APA91bHlmvZ5qjeiYmy95mS2lRXVikH_gsc3jKitGioWaAVgVV2jyYMYl_Dmv_-FUlVHrJDXdEvOQOxcKqRmCd-2DGoHJ3MGMH45fzRJH_3vas8AGuyh2Fml06Zg-J9kZgieJTXrcCLn'
+      },
+    );
+
+    try {
+      final response = await Dio(options).post('https://fcm.googleapis.com/fcm/send', data: data);
+      print('>>>>>>>> $response');
+    } on DioError catch (e) {
+      print('exception ${e.message}');
+    }
   }
 
   clear() {
@@ -67,7 +103,7 @@ class _AddMeetingState extends State<AddMeeting> {
     location.clear();
   }
 
-  Future<Null> _selectDate(BuildContext context) async {
+  Future<void> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
         context: context,
         initialDate: selectedDate,
@@ -81,7 +117,7 @@ class _AddMeetingState extends State<AddMeeting> {
       });
   }
 
-  Future<Null> _selectTime(BuildContext context) async {
+  Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay picked = await showTimePicker(
       context: context,
       initialTime: selectedTime,

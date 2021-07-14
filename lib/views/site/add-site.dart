@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
@@ -25,13 +28,13 @@ class _AddSiteState extends State<AddSite> {
   TextEditingController clientGST = TextEditingController();
   TextEditingController mail = TextEditingController();
   TextEditingController phoneNumber = TextEditingController();
-  String category;
+  String category = 'Architectural Design';
   List<File> estimation = [];
   List<File> renders = [];
   List<File> drawings = [];
-  DateTime startedOn;
-  DateTime endedOn;
-  String status;
+  DateTime startedOn = DateTime.now();
+  DateTime endedOn = DateTime.now();
+  String status = 'In Pipeline';
   String progress;
   List<String> categoryList = [
     'Architectural Design',
@@ -58,13 +61,20 @@ class _AddSiteState extends State<AddSite> {
     mail.clear();
     phoneNumber.clear();
     setState(() {
-      category = null;
       estimation = [];
       renders = [];
       drawings = [];
-      startedOn = null;
       progress = null;
     });
+  }
+
+  bool validate() {
+    return siteName.text != '' &&
+        siteLocation.text != '' &&
+        clientName.text != '' &&
+        clientGST.text != '' &&
+        clientBillingAddress.text != '' &&
+        phoneNumber.text != '';
   }
 
   Future<void> selectStartDate(BuildContext context) async {
@@ -128,20 +138,41 @@ class _AddSiteState extends State<AddSite> {
     setState(() {
       isLoading = true;
     });
+
     for (int i = 0; i < estimation.length; i++) {
-      var value = await MultipartFile.fromFile(estimation[i].path, filename: basename(estimation[i].path));
-      estimationFiles.add(value);
+      var res = FirebaseStorage.instance.ref(basename(estimation[i].path));
+      await res.putFile(estimation[i]).then((value) async {
+        String link = await value.ref.getDownloadURL();
+        setState(() {
+          progress = "${i + 1} - ${estimation.length} Estimation files uploading";
+        });
+        estimationFiles.add(link);
+        print(link);
+      });
     }
 
     for (int i = 0; i < renders.length; i++) {
-      var value = await MultipartFile.fromFile(renders[i].path, filename: basename(renders[i].path));
-      renderFiles.add(value);
+      var res = FirebaseStorage.instance.ref(basename(renders[i].path));
+      await res.putFile(renders[i]).then((value) async {
+        String link = await value.ref.getDownloadURL();
+        setState(() {
+          progress = "${i + 1} - ${renders.length} Render files uploading";
+        });
+        renderFiles.add(link);
+        print(link);
+      });
     }
     for (int i = 0; i < drawings.length; i++) {
-      var value = await MultipartFile.fromFile(drawings[i].path, filename: basename(drawings[i].path));
-      drawingFiles.add(value);
+      var res = FirebaseStorage.instance.ref(basename(drawings[i].path));
+      await res.putFile(drawings[i]).then((value) async {
+        String link = await value.ref.getDownloadURL();
+        setState(() {
+          progress = "${i + 1} - ${drawings.length} Drawing files uploading";
+        });
+        drawingFiles.add(link);
+        print(link);
+      });
     }
-    print([estimationFiles, renderFiles, drawingFiles]);
 
     Map<String, dynamic> mapData = {
       'siteName': siteName.text,
@@ -150,31 +181,43 @@ class _AddSiteState extends State<AddSite> {
       'clientBillingAddress': clientBillingAddress.text,
       'clientGst': clientGST.text,
       'contactMailId': mail.text,
-      'mobileNumber': '+91' + phoneNumber.text,
+      'mobileNumber': phoneNumber.text,
       'categoryOfWork': category,
-      'estimationAndBoqLinks': [],
-      'estimationAndBoqFiles': estimationFiles,
-      'threeDRendersLinks': [],
-      'threeDRendersFiles': renderFiles,
-      'drawingsLinks': [],
-      'drawingsFiles': drawingFiles,
+      'estimationAndBoqLinks': estimationFiles,
+      'estimationAndBoqFiles': [],
+      'threeDRendersLinks': renderFiles,
+      'threeDRendersFiles': [],
+      'drawingsLinks': drawingFiles,
+      'drawingsFiles': [],
       'projectStartedOn': startedOn.toString(),
       'estimatedCompletionOfProject': endedOn.toString(),
       'statusOfProject': status
     };
+    print([estimationFiles, renderFiles]);
     FormData data = FormData.fromMap(mapData);
+    print(data.files);
     try {
       var responce = await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewSite.php', data: data,
           onSendProgress: (int sent, int total) {
         String percentage = (sent / total * 100).toStringAsFixed(2);
         setState(() {
-          progress = "$sent" + " Bytes of " "$total Bytes - " + percentage + " % uploaded";
+          progress = percentage + " % uploaded";
         });
       });
+      print(responce.data);
+      var id;
+      id = jsonDecode(responce.data)['id'];
+      print(id);
+      if (id != null) {
+        await FirebaseFirestore.instance
+            .collection('files')
+            .doc('$id')
+            .set({'estimation': estimationFiles, 'render': renderFiles, 'drawing': drawingFiles});
+      }
+
       Commons.snackBar(scaffoldKey, 'Site Added');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       clear();
-      print(responce);
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently facing some problem');
       print(e);
@@ -196,40 +239,42 @@ class _AddSiteState extends State<AddSite> {
       body: isLoading
           ? Column(
               children: [
+                SizedBox(height: 120),
+                Center(child: CircularProgressIndicator()),
+                SizedBox(height: 15),
                 if (progress != null)
                   Center(
                     child: Text(progress),
                   ),
-                Center(child: CircularProgressIndicator()),
               ],
             )
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  textWidget(title: 'Site Name', controller: siteName),
-                  textWidget(title: 'Site Location', controller: siteLocation),
-                  textWidget(title: 'Client Name', controller: clientName),
+                  textWidget(title: 'Site Name *', controller: siteName),
+                  textWidget(title: 'Site Location *', controller: siteLocation),
+                  textWidget(title: 'Client Name *', controller: clientName),
                   textWidget(
-                      title: 'Client Billing Address',
+                      title: 'Client Billing Address *',
                       controller: clientBillingAddress,
                       minLine: 5,
                       maxLine: 8,
                       padding: const EdgeInsets.all(10)),
                   textWidget(title: 'Mail Id', controller: mail),
-                  numberField(title: 'Phone Number', controller: phoneNumber, maxLength: 10),
-                  textWidget(title: 'Client GST', controller: clientGST),
+                  numberField(title: 'Phone Number *', controller: phoneNumber, maxLength: 10),
+                  textWidget(title: 'Client GST *', controller: clientGST),
                   dropDownBox(
                       list: categoryList,
                       value: category,
                       onChange: (String value) => setState(() => category = value),
-                      title: 'Category of work'),
+                      title: 'Category of work *'),
                   estimationField(context),
                   renderField(context),
                   drawingsField(context),
-                  datePicker(context, title: 'Project Started on', dateTime: startedOn, onPressed: () {
+                  datePicker(context, title: 'Project Started on *', dateTime: startedOn, onPressed: () {
                     selectStartDate(context);
                   }),
-                  datePicker(context, title: 'Estimation Completed', dateTime: endedOn, onPressed: () {
+                  datePicker(context, title: 'Estimation Completed *', dateTime: endedOn, onPressed: () {
                     selectEndDate(context);
                   }),
                   dropDownBox(
@@ -239,7 +284,11 @@ class _AddSiteState extends State<AddSite> {
                       title: 'Status Of Project'),
                   RaisedButton.icon(
                       onPressed: () {
-                        addForm(context);
+                        if (validate()) {
+                          addForm(context);
+                        } else {
+                          Commons.snackBar(scaffoldKey, 'Fill all the fields with *');
+                        }
                       },
                       icon: Icon(Icons.save),
                       label: Text("ADD"),
@@ -252,7 +301,7 @@ class _AddSiteState extends State<AddSite> {
   }
 
   Widget datePicker(BuildContext context,
-      {@required String title, @required DateTime dateTime, @required Function onPressed()}) {
+      {@required String title, @required DateTime dateTime, @required Function() onPressed}) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -283,31 +332,6 @@ class _AddSiteState extends State<AddSite> {
           renders.removeAt(value);
         });
       },
-      // widget: TextFormField(
-      //   controller: sample2,
-      //   decoration: InputDecoration(
-      //       border: OutlineInputBorder(),
-      //       hintText: 'Add Links',
-      //       contentPadding: EdgeInsets.symmetric(horizontal: 10),
-      //       suffix: IconButton(
-      //         onPressed: () {
-      //           if (sample2.text != '')
-      //             setState(() {
-      //               if (!rendersLinks.contains(sample2.text)) {
-      //                 rendersLinks.add(sample2.text);
-      //                 sample2.clear();
-      //               }
-      //             });
-      //         },
-      //         icon: Icon(Icons.add_circle_rounded),
-      //       )),
-      // ),
-      // links: rendersLinks,
-      // removeLink: (int value) {
-      //   setState(() {
-      //     rendersLinks.removeAt(value);
-      //   });
-      // },
     );
   }
 
@@ -324,31 +348,6 @@ class _AddSiteState extends State<AddSite> {
           drawings.removeAt(value);
         });
       },
-      // widget: TextFormField(
-      //   controller: sample3,
-      //   decoration: InputDecoration(
-      //       border: OutlineInputBorder(),
-      //       hintText: 'Add Links',
-      //       contentPadding: EdgeInsets.symmetric(horizontal: 10),
-      //       suffix: IconButton(
-      //         onPressed: () {
-      //           if (sample3.text != '')
-      //             setState(() {
-      //               if (!drawingsLinks.contains(sample3.text)) {
-      //                 drawingsLinks.add(sample3.text);
-      //                 sample3.clear();
-      //               }
-      //             });
-      //         },
-      //         icon: Icon(Icons.add_circle_rounded),
-      //       )),
-      // ),
-      // links: drawingsLinks,
-      // removeLink: (int value) {
-      //   setState(() {
-      //     drawingsLinks.removeAt(value);
-      //   });
-      // },
     );
   }
 
@@ -365,45 +364,11 @@ class _AddSiteState extends State<AddSite> {
           estimation.removeAt(value);
         });
       },
-      // widget: TextFormField(
-      //   controller: sample1,
-      //   decoration: InputDecoration(
-      //       border: OutlineInputBorder(),
-      //       hintText: 'Add Links',
-      //       contentPadding: EdgeInsets.symmetric(horizontal: 10),
-      //       suffix: IconButton(
-      //         onPressed: () {
-      //           if (sample1.text != '')
-      //             setState(() {
-      //               if (!estimationLinks.contains(sample1.text)) {
-      //                 estimationLinks.add(sample1.text);
-      //                 sample1.clear();
-      //               }
-      //             });
-      //           print(estimationLinks);
-      //         },
-      //         icon: Icon(Icons.add_circle_rounded),
-      //       )),
-      // ),
-      // links: estimationLinks,
-      // removeLink: (int value) {
-      //   setState(() {
-      //     estimationLinks.removeAt(value);
-      //   });
-      // },
     );
   }
 
-  Widget filePicker(
-    BuildContext context, {
-    @required String title,
-    @required List<File> file,
-    selectFile(),
-    Function(int) remove,
-    // Function(int) removeLink,
-    // Widget widget,
-    // List<String> links
-  }) {
+  Widget filePicker(BuildContext context,
+      {@required String title, @required List<File> file, selectFile(), Function(int) remove}) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -435,19 +400,6 @@ class _AddSiteState extends State<AddSite> {
                     },
                     child: Icon(Icons.cancel_sharp))
               ]),
-          // if (widget != null) widget,
-          // if (links != null)
-          //   if (links.isNotEmpty)
-          //     for (int i = 0; i < links.length; i++)
-          //       Row(children: [
-          //         Container(
-          //             margin: EdgeInsets.all(5), width: MediaQuery.of(context).size.width - 82, child: Text(links[i])),
-          //         InkWell(
-          //             onTap: () {
-          //               removeLink(i);
-          //             },
-          //             child: Icon(Icons.cancel_sharp))
-          //       ]),
         ],
       ),
     );

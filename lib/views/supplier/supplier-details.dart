@@ -9,6 +9,7 @@ import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
+import 'package:thousandbricks/views/supplier/pay-supplier.dart';
 
 class SupplierDetailsPage extends StatefulWidget {
   final String id;
@@ -32,6 +33,8 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
   String address;
   String mail;
   Suppliers suppliers;
+  String stock;
+  String income;
 
   bool isLoading = false;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
@@ -47,20 +50,44 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
       'contactNumber': contactNumber,
       'alternateContactNumber': alternateNumber,
       'eMail': mail,
-      'bankAccountDetails': {'accNumber': accNumber, 'branch': bankBranch, 'name': bankName, 'ifsc': IFSC}.toString(),
+      'accountNumber': accNumber,
+      'bankBranch': bankBranch,
+      'bankName': bankName,
+      'ifscCode': IFSC,
       'address': address,
       'gstNumber': GSTnumber
     };
     FormData data = FormData.fromMap(mapData);
     try {
       var responce = await dio.post(
-          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSupplierDetails.php?type=deleteSupplier',
+          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSupplierDetails.php?type=update',
           data: data);
-      setState(() {
-        suppliers = Suppliers.fromJson(jsonDecode(responce.data));
-      });
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
+      // getDetails();
+      print('Added Successfully...');
+      print(responce);
+    } catch (e) {
+      Commons.snackBar(scaffoldKey, 'Currently Facing Some Issue!!!');
+      print(e);
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  deleteSupplier() async {
+    setState(() {
+      isLoading = true;
+    });
+    Map<String, dynamic> mapData = {'id': widget.id};
+    FormData data = FormData.fromMap(mapData);
+    try {
+      var responce = await dio.post(
+          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSupplierDetails.php?type=deleteSupplier',
+          data: data);
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
+      Navigator.pop(context);
       print(responce);
       clear();
     } catch (e) {
@@ -104,6 +131,12 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
           mail = suppliers.data[0].eMail;
           address = suppliers.data[0].address;
           GSTnumber = suppliers.data[0].gstNumber;
+          accNumber = suppliers.data[0].accountNumber;
+          bankBranch = suppliers.data[0].bankBranch;
+          bankName = suppliers.data[0].bankName;
+          IFSC = suppliers.data[0].ifscCode;
+          stock = suppliers.data[0].stockTotalAmount;
+          income = suppliers.data[0].supplierPayManagementTotalAmount;
         }
       });
     } catch (e) {
@@ -126,7 +159,22 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        title: Text('Add Supplier', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(widget.id == null ? 'Add Supplier' : 'Edit Supplier',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            if (widget.edit)
+              RaisedButton.icon(
+                  onPressed: () {
+                    editSupplier();
+                  },
+                  icon: Icon(Icons.delete),
+                  label: Text("DELETE"),
+                  color: Commons.bgColor,
+                  colorBrightness: Brightness.dark),
+          ],
+        ),
         centerTitle: true,
       ),
       body: isLoading
@@ -134,11 +182,91 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  textWidget(title: 'Company Name', controller: companyName),
-                  textWidget(title: 'Contact Person', controller: contactPerson),
-                  textWidget(title: 'Contact Number', controller: contactNumber),
-                  textWidget(title: 'Alternate Contact Number', controller: alternateNumber),
-                  textWidget(title: 'Mail Id', controller: mail),
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Stock Value : ${stock != '' ? stock ?? 0 : 0}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Commons.bgColor)),
+                        Text('Paid : ${income != '' ? income ?? 0 : 0}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Commons.bgColor)),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) => SupplierPay(
+                                          name: companyName,
+                                          id: widget.id,
+                                        )));
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(color: Commons.bgColor, borderRadius: BorderRadius.circular(8)),
+                            child: Text('Pay Supplier',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                )),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  textWidget(
+                      title: 'Company Name',
+                      controller: companyName,
+                      onChange: (value) {
+                        setState(() {
+                          companyName = value;
+                        });
+                      }),
+                  textWidget(
+                      title: 'Contact Person',
+                      controller: contactPerson,
+                      onChange: (value) {
+                        setState(() {
+                          contactPerson = value;
+                        });
+                      }),
+                  textWidget(
+                      title: 'Contact Number',
+                      controller: contactNumber,
+                      onChange: (value) {
+                        setState(() {
+                          contactNumber = value;
+                        });
+                      }),
+                  textWidget(
+                      title: 'Alternate Contact Number',
+                      controller: alternateNumber,
+                      onChange: (value) {
+                        setState(() {
+                          alternateNumber = value;
+                        });
+                      }),
+                  textWidget(
+                      title: 'Mail Id',
+                      controller: mail,
+                      onChange: (value) {
+                        setState(() {
+                          mail = value;
+                        });
+                      }),
                   Container(
                     width: MediaQuery.of(context).size.width,
                     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -151,10 +279,38 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
                         BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
                     child: Column(
                       children: [
-                        textWidget(title: 'Account Number', controller: accNumber),
-                        textWidget(title: 'Bank Name', controller: bankName),
-                        textWidget(title: 'Bank Branch', controller: bankBranch),
-                        textWidget(title: 'IFSC Code', controller: IFSC),
+                        textWidget(
+                            title: 'Account Number',
+                            controller: accNumber,
+                            onChange: (value) {
+                              setState(() {
+                                accNumber = value;
+                              });
+                            }),
+                        textWidget(
+                            title: 'Bank Name',
+                            controller: bankName,
+                            onChange: (value) {
+                              setState(() {
+                                bankName = value;
+                              });
+                            }),
+                        textWidget(
+                            title: 'Bank Branch',
+                            controller: bankBranch,
+                            onChange: (value) {
+                              setState(() {
+                                bankBranch = value;
+                              });
+                            }),
+                        textWidget(
+                            title: 'IFSC Code',
+                            controller: IFSC,
+                            onChange: (value) {
+                              setState(() {
+                                IFSC = value;
+                              });
+                            }),
                       ],
                     ),
                   ),
@@ -163,15 +319,27 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
                       controller: address,
                       minLine: 5,
                       maxLine: 8,
-                      padding: const EdgeInsets.all(10)),
-                  textWidget(title: 'Client GST', controller: GSTnumber),
+                      padding: const EdgeInsets.all(10),
+                      onChange: (value) {
+                        setState(() {
+                          address = value;
+                        });
+                      }),
+                  textWidget(
+                      title: 'Client GST',
+                      controller: GSTnumber,
+                      onChange: (value) {
+                        setState(() {
+                          GSTnumber = value;
+                        });
+                      }),
                   if (widget.edit)
                     RaisedButton.icon(
                         onPressed: () {
                           editSupplier();
                         },
-                        icon: Icon(Icons.save),
-                        label: Text("ADD SUPPLIER"),
+                        icon: Icon(Icons.edit),
+                        label: Text("EDIT SUPPLIER"),
                         color: Commons.bgColor,
                         colorBrightness: Brightness.dark)
                 ],
@@ -204,6 +372,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
       @required String controller,
       num minLine,
       num maxLine,
+      Function(String value) onChange,
       EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10)}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -215,6 +384,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
           enabled: widget.edit,
           maxLines: maxLine,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
+          onChanged: onChange,
         ),
       ]),
     );
@@ -224,6 +394,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
       {@required String title,
       @required String controller,
       num maxLength,
+      Function(String value) onChange,
       EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10)}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -235,6 +406,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
           enabled: widget.edit,
           inputFormatters: <TextInputFormatter>[WhitelistingTextInputFormatter.digitsOnly],
           maxLength: maxLength,
+          onChanged: onChange,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
         ),
       ]),

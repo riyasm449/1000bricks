@@ -28,7 +28,12 @@ class SupplierData {
   String contactNumber;
   String alternateContactNumber;
   String eMail;
-  String bankAccountDetails;
+  String accountNumber;
+  String bankName;
+  String bankBranch;
+  String ifscCode;
+  String stockTotalAmount;
+  String supplierPayManagementTotalAmount;
   String address;
   String gstNumber;
 
@@ -39,20 +44,30 @@ class SupplierData {
       this.contactNumber,
       this.alternateContactNumber,
       this.eMail,
-      this.bankAccountDetails,
+      this.accountNumber,
+      this.bankName,
+      this.bankBranch,
+      this.ifscCode,
+      this.stockTotalAmount,
+      this.supplierPayManagementTotalAmount,
       this.address,
       this.gstNumber});
 
   SupplierData.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    companyName = json['companyName'];
-    contactPerson = json['contactPerson'];
-    contactNumber = json['contactNumber'];
-    alternateContactNumber = json['alternateContactNumber'];
-    eMail = json['eMail'];
-    bankAccountDetails = json['bankAccountDetails'];
-    address = json['address'];
-    gstNumber = json['gstNumber'];
+    id = json['id'] ?? '';
+    companyName = json['companyName'] ?? '';
+    contactPerson = json['contactPerson'] ?? '';
+    contactNumber = json['contactNumber'] ?? '';
+    alternateContactNumber = json['alternateContactNumber'] ?? '';
+    eMail = json['eMail'] ?? '';
+    accountNumber = json['accountNumber'] ?? '';
+    bankName = json['bankName'] ?? '';
+    bankBranch = json['bankBranch'] ?? '';
+    ifscCode = json['ifscCode'] ?? '';
+    stockTotalAmount = json['stockTotalAmount'] ?? '';
+    supplierPayManagementTotalAmount = json['supplierPayManagementTotalAmount'] ?? '';
+    address = json['address'] ?? '0';
+    gstNumber = json['gstNumber'] ?? '0';
   }
 
   Map<String, dynamic> toJson() {
@@ -63,9 +78,12 @@ class SupplierData {
     data['contactNumber'] = this.contactNumber;
     data['alternateContactNumber'] = this.alternateContactNumber;
     data['eMail'] = this.eMail;
-    data['bankAccountDetails'] = this.bankAccountDetails;
-    data['address'] = this.address;
-    data['gstNumber'] = this.gstNumber;
+    data['accountNumber'] = this.accountNumber;
+    data['bankName'] = this.bankName;
+    data['bankBranch'] = this.bankBranch;
+    data['ifscCode'] = this.ifscCode;
+    data['stockTotalAmount'] = this.stockTotalAmount;
+    data['supplierPayManagementTotalAmount'] = this.supplierPayManagementTotalAmount;
     return data;
   }
 }

@@ -31,6 +31,7 @@ class _SiteManagementState extends State<SiteManagement> {
       var responce = await dio.get(
         'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=all',
       );
+      print(responce);
       setState(() {
         sites = Sites.fromJson(jsonDecode(responce.data));
       });
@@ -41,6 +42,28 @@ class _SiteManagementState extends State<SiteManagement> {
       isLoading = false;
     });
   }
+
+  // void deleteSite(String id) async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+  //   Map<String, dynamic> map = {'id': id};
+  //   FormData data = FormData.fromMap(map);
+  //   print(map);
+  //   try {
+  //     var responce = await dio.post(
+  //         'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSiteDetails.php?type=deleteSite',
+  //         data: data);
+  //     getAllSites();
+  //     print(responce);
+  //   } catch (e) {
+  //     print('>>>>>>>>> error <<<<<<<');
+  //     print(e);
+  //   }
+  //   setState(() {
+  //     isLoading = false;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -67,21 +90,28 @@ class _SiteManagementState extends State<SiteManagement> {
                     if (!isLoading && sites != null)
                       if (sites.data?.isNotEmpty)
                         for (int index = 0; index < sites.data.length; index++)
-                          TableRow(children: [
-                            tableTitle(sites.data[index].siteName,
-                                textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
-                            tableTitle(sites.data[index].siteLocation, textColor: Colors.black),
-                            Center(
-                                child: IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  SiteDetailsPage(id: sites.data[index].id)));
-                                    },
-                                    icon: Icon(Icons.remove_red_eye))),
-                            Center(
+                          if (sites.data[index].statusOfProject != 'Project Terminated')
+                            TableRow(children: [
+                              tableTitle(sites.data[index].siteName,
+                                  textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
+                              tableTitle(sites.data[index].siteLocation, textColor: Colors.black),
+                              Center(
+                                  child: IconButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (BuildContext context) =>
+                                                    SiteDetailsPage(id: sites.data[index].id)));
+                                      },
+                                      icon: Icon(Icons.remove_red_eye))),
+                              // Container(
+                              //     height: 50,
+                              //     alignment: Alignment.center,
+                              //     child: Row(
+                              //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              //       children: [
+                              Center(
                                 child: IconButton(
                                     onPressed: () {
                                       Navigator.push(
@@ -90,8 +120,16 @@ class _SiteManagementState extends State<SiteManagement> {
                                               builder: (BuildContext context) =>
                                                   SiteDetailsPage(id: sites.data[index].id, edit: true)));
                                     },
-                                    icon: Icon(Icons.edit)))
-                          ]),
+                                    icon: Icon(Icons.edit)),
+                              ),
+                              // InkWell(
+                              //     onTap: () async {
+                              //       // deleteSite(sites.data[index].id);
+                              //     },
+                              //     child: Icon(Icons.delete)),
+                              //   ],
+                              // ))
+                            ]),
                   ]),
             ),
           ],

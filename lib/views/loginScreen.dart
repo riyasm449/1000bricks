@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -131,6 +133,12 @@ class _LoginPageState extends State<LoginPage> {
         /// trying to login ///
         await FirebaseAuth.instance
             .signInWithEmailAndPassword(email: _mailFeild.text.trim(), password: _passwordField.text.trim());
+        String token = await FirebaseMessaging.instance.getToken();
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser.uid)
+            .update({'token': token});
+        //
         userProvider.getUserDetails(FirebaseAuth.instance.currentUser.uid);
         Navigator.pushReplacementNamed(context, '/home');
         setLoading(false);

@@ -5,31 +5,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:thousandbricks/models/income.dart';
 import 'package:thousandbricks/models/sites.dart';
+import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
-class AddIncomePage extends StatefulWidget {
-  final IncomeData income;
-
-  const AddIncomePage({Key key, this.income}) : super(key: key);
+class AddStock extends StatefulWidget {
   @override
-  _AddIncomePageState createState() => _AddIncomePageState();
+  _AddStockState createState() => _AddStockState();
 }
 
-class _AddIncomePageState extends State<AddIncomePage> {
+class _AddStockState extends State<AddStock> {
   TextEditingController amount = TextEditingController();
   TextEditingController comment = TextEditingController();
   TextEditingController dateController = TextEditingController();
+  TextEditingController subCategory = TextEditingController();
+  TextEditingController quantity = TextEditingController();
+  TextEditingController totalAmount = TextEditingController();
   DateTime selectedDate = DateTime.now();
   String selectedSite;
-  String selectedPaymentType = 'Cash';
+  String selectedSupplier;
+  String selectedCategory = 'Cement';
   Sites sites;
+  Suppliers suppliers;
   bool isLoading = false;
   List<String> sitesName = [];
-  List<String> paymentTypes = ['Cash', 'Cheque', 'Online'];
+  List<String> suppliersName = [];
+  List<String> categoriesList = [
+    'Cement',
+    'Electrical\'s',
+    'JCB',
+    'Old Balance',
+    'Others',
+    'Plumbing',
+    'Raw Materials',
+    'Steel'
+  ];
 
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
 
@@ -58,6 +70,31 @@ class _AddIncomePageState extends State<AddIncomePage> {
     });
   }
 
+  void getAllSuppliers() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      var responce = await dio.get(
+        'http://1000bricks.meatmatestore.in/thousandBricksApi/getSupplierDetails.php?type=all',
+      );
+      setState(() {
+        suppliers = Suppliers.fromJson(jsonDecode(responce.data));
+        if (suppliers.data != null) {
+          for (int i = 0; i < suppliers.data.length; i++) {
+            suppliersName.add(suppliers.data[i].companyName);
+          }
+          if (suppliersName.isNotEmpty) selectedSupplier = suppliersName[0];
+        }
+      });
+    } catch (e) {
+      print(e);
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   String getSiteId() {
     int index;
     for (int i = 0; i < sites.data.length; i++) {
@@ -69,22 +106,36 @@ class _AddIncomePageState extends State<AddIncomePage> {
     return sites.data[index].id;
   }
 
-  addIncome() async {
+  String getSupplierId() {
+    int index;
+    for (int i = 0; i < suppliers.data.length; i++) {
+      if (suppliers.data[i].companyName == selectedSupplier) {
+        index = i;
+        break;
+      }
+    }
+    return sites.data[index].id;
+  }
+
+  addStock() async {
     setState(() {
       isLoading = true;
     });
     Map<String, dynamic> mapData = {
-      'site': getSiteId(),
+      'siteId': getSiteId(),
       'date': selectedDate.toString(),
-      'amount': amount.text,
-      'modeOfPayment': selectedPaymentType,
-      'comment': comment.text
+      'supplierId': getSupplierId(),
+      'amount': amount.text != '' ? amount.text : '0',
+      'category': selectedCategory,
+      'subCategory': subCategory.text,
+      'comment': comment.text,
+      'quantity': quantity.text != '' ? quantity.text : '0',
+      'totalAmount': totalAmount.text
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce =
-          await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewIncome.php', data: data);
-      Commons.snackBar(scaffoldKey, 'Added Income');
+      var responce = await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewStock.php', data: data);
+      Commons.snackBar(scaffoldKey, 'Added Stock');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       clear();
     } catch (e) {
@@ -99,9 +150,10 @@ class _AddIncomePageState extends State<AddIncomePage> {
 
   clear() {
     comment.clear();
-    amount.clear();
-    selectedDate = null;
-    selectedPaymentType = null;
+    subCategory.clear();
+    amount.text = '0';
+    totalAmount.text = '0';
+    quantity.text = '0';
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -118,26 +170,28 @@ class _AddIncomePageState extends State<AddIncomePage> {
       });
   }
 
+  bool valid() {
+    return selectedSite != null &&
+        selectedDate != null &&
+        selectedCategory != null &&
+        selectedSupplier != null &&
+        amount.text != '' &&
+        amount.text != '0' &&
+        quantity.text != '' &&
+        quantity.text != '0' &&
+        totalAmount.text != '' &&
+        totalAmount.text != '0';
+  }
+
   @override
   void initState() {
     super.initState();
     dateController.text = DateFormat.yMd().format(DateTime.now());
     WidgetsBinding.instance.addPostFrameCallback((_) => getAllSites());
-    if (widget.income != null) {
-      dateController.text = DateFormat.yMd().format(DateTime.parse(widget.income.date));
-      amount.text = widget.income.amount;
-      selectedSite = widget.income.site;
-      selectedPaymentType = widget.income.modeOfPayment;
-      comment.text = widget.income.comment;
-    }
-  }
-
-  bool valid() {
-    return selectedDate != null &&
-        selectedSite != null &&
-        selectedPaymentType != null &&
-        amount.text != '' &&
-        amount.text != '0';
+    WidgetsBinding.instance.addPostFrameCallback((_) => getAllSuppliers());
+    quantity.text = '1';
+    amount.text = '0';
+    totalAmount.text = '0';
   }
 
   @override
@@ -145,7 +199,7 @@ class _AddIncomePageState extends State<AddIncomePage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        title: Text('Add Income', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+        title: Text('Add Stock', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: isLoading
@@ -157,38 +211,75 @@ class _AddIncomePageState extends State<AddIncomePage> {
                   dropDownBox(
                       list: sitesName,
                       onChange: (String value) {
-                        if (widget.income == null)
-                          setState(() {
-                            selectedSite = value;
-                          });
+                        // if (widget.income == null)
+                        setState(() {
+                          selectedSite = value;
+                        });
                       },
                       value: selectedSite,
                       title: 'Select Site *'),
                   dateCard(),
-                  textWidget(title: 'Comment', controller: comment),
-                  numberField(title: 'Amount *', controller: amount),
+                  // if (suppliersName != null)
                   dropDownBox(
-                      list: paymentTypes,
+                      list: suppliersName,
                       onChange: (String value) {
-                        if (widget.income == null)
-                          setState(() {
-                            selectedPaymentType = value;
-                          });
+                        // if (widget.income == null)
+                        setState(() {
+                          selectedSupplier = value;
+                        });
                       },
-                      value: selectedPaymentType,
-                      title: 'Select Payment Mode *'),
-                  if (widget.income == null)
-                    FlatButton(
-                      color: Commons.bgColor,
-                      onPressed: () {
-                        if (valid()) {
-                          addIncome();
+                      value: selectedSupplier,
+                      title: 'Select Supplier *'),
+                  dropDownBox(
+                      list: categoriesList,
+                      onChange: (String value) {
+                        // if (widget.income == null)
+                        setState(() {
+                          selectedCategory = value;
+                        });
+                      },
+                      value: selectedCategory,
+                      title: 'Select Category *'),
+                  textWidget(title: 'SubCategory', controller: subCategory),
+                  numberField(
+                      title: 'Amount *',
+                      controller: amount,
+                      onChange: (String value) {
+                        if (value != '' && value != '0' && quantity.text != '' && quantity.text != '0') {
+                          totalAmount.text = '${int.parse(value) * int.parse(quantity.text)}';
+                          print('${int.parse(value) * int.parse(quantity.text)}');
                         } else {
-                          Commons.snackBar(scaffoldKey, 'Fill all Fields with *');
+                          print('0');
+                          totalAmount.text = '0';
                         }
-                      },
-                      child: Text('ADD INCOME', style: TextStyle(color: Colors.white)),
-                    )
+                      }),
+                  numberField(
+                      title: 'Quantity *',
+                      controller: quantity,
+                      onChange: (String value) {
+                        if (value != '' && value != '0' && amount.text != '' && amount.text != '0') {
+                          totalAmount.text = '${int.parse(value) * int.parse(amount.text)}';
+                          print('${int.parse(value) * int.parse(amount.text)}');
+                        } else {
+                          print('0');
+                          totalAmount.text = '0';
+                        }
+                      }),
+                  numberField(title: 'Total Amount', controller: totalAmount),
+                  textWidget(title: 'Comment', controller: comment),
+                  // if (widget.income == null)
+                  FlatButton(
+                    color: Commons.bgColor,
+                    onPressed: () {
+                      if (valid()) {
+                        addStock();
+                      } else {
+                        Commons.snackBar(
+                            scaffoldKey, 'Fill all the fields with * || amount or quantity or total should not be 0');
+                      }
+                    },
+                    child: Text('  ADD  ', style: TextStyle(color: Colors.white)),
+                  )
                 ],
               ),
             ),
@@ -207,7 +298,6 @@ class _AddIncomePageState extends State<AddIncomePage> {
         Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         TextFormField(
           controller: controller,
-          enabled: widget.income == null,
           minLines: minLine,
           maxLines: maxLine,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
@@ -228,7 +318,7 @@ class _AddIncomePageState extends State<AddIncomePage> {
               Container(
                   height: 50,
                   alignment: Alignment.center,
-                  child: Text('Date of Income * : ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                  child: Text('Date:  ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
               InkWell(
                   onTap: () {
                     _selectDate(context);
@@ -284,6 +374,8 @@ class _AddIncomePageState extends State<AddIncomePage> {
       {@required String title,
       @required TextEditingController controller,
       num maxLength,
+      Function(String) onChange,
+      bool enabled = true,
       EdgeInsetsGeometry padding = const EdgeInsets.symmetric(horizontal: 10)}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -292,9 +384,10 @@ class _AddIncomePageState extends State<AddIncomePage> {
         TextFormField(
           controller: controller,
           keyboardType: TextInputType.number,
-          enabled: widget.income == null,
+          enabled: enabled,
           inputFormatters: <TextInputFormatter>[WhitelistingTextInputFormatter.digitsOnly],
           maxLength: maxLength,
+          onChanged: onChange,
           decoration: InputDecoration(border: OutlineInputBorder(), contentPadding: padding),
         ),
       ]),

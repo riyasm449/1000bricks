@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/site-details.dart';
@@ -36,11 +40,31 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
   String projectStartedOn;
   String estimatedCompletionOfProject;
   String statusOfProject;
-  List<EstimationAndBoqFile> estimationAndBoqFile;
-  List<ThreeDRenderFile> threeDRendersFile;
-  List<DrawingFile> drawingsFile;
+  List estimationAndBoqFile;
+  List threeDRendersFile;
+  List drawingsFile;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   Directory dir;
+  List<String> categoryList = [
+    'Architectural Design',
+    'Landscaping Design',
+    'Interiors',
+    'Construction',
+    'HVAC',
+    'Project Management'
+  ];
+  List<String> statusList = [
+    'In Pipeline',
+    'In Design Process',
+    'Site Execution in Progress',
+    'Project Completed',
+    'Project on Hold',
+    'Project Terminated'
+  ];
+
+  List<File> estimation = [];
+  List<File> renders = [];
+  List<File> drawings = [];
   @override
   void initState() {
     super.initState();
@@ -48,6 +72,84 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       dir = await getApplicationDocumentsDirectory();
     });
+  }
+
+  selectEstimationFile() async {
+    List<File> files = await FilePicker.getMultiFile(
+      type: FileType.custom,
+    );
+    setState(() {
+      estimation.addAll(files);
+    });
+    uploadFile('estimation', estimation).then((value) {
+      setState(() {
+        estimation = [];
+      });
+    });
+  }
+
+  selectRenderFile() async {
+    List<File> files = await FilePicker.getMultiFile(
+      type: FileType.custom,
+    );
+    setState(() {
+      renders.addAll(files);
+    });
+    uploadFile('render', renders).then((value) {
+      setState(() {
+        renders = [];
+      });
+    });
+  }
+
+  selectDrawingFile() async {
+    List<File> files = await FilePicker.getMultiFile(
+      type: FileType.custom,
+    );
+    setState(() {
+      drawings.addAll(files);
+    });
+    uploadFile('drawing', drawings).then((value) {
+      setState(() {
+        drawings = [];
+      });
+    });
+  }
+
+  Future<bool> uploadFile(String category, List<File> file) async {
+    setState(() {
+      isLoading = true;
+    });
+    List filesData = [];
+    try {
+      for (int i = 0; i < file.length; i++) {
+        var res = FirebaseStorage.instance.ref(basename(file[i].path));
+        await res.putFile(file[i]).then((value) async {
+          String link = await value.ref.getDownloadURL();
+          setState(() {
+            progress = "${i + 1} - ${file.length} Estimation files uploading";
+          });
+          filesData.add(link);
+          print(link);
+        });
+      }
+      FirebaseFirestore.instance
+          .collection('files')
+          .doc('${widget.id}')
+          .update({category: FieldValue.arrayUnion(filesData)});
+      setState(() {
+        isLoading = false;
+      });
+      Commons.snackBar(scaffoldKey, 'Files Added');
+      return true;
+    } catch (e) {
+      print(e);
+      setState(() {
+        isLoading = false;
+      });
+      Commons.snackBar(scaffoldKey, 'Some problem in Adding Files');
+      return false;
+    }
   }
 
   void getSiteDetails() async {
@@ -58,6 +160,8 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
       var responce = await dio.get(
         'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=${widget.id}',
       );
+      var res = await FirebaseFirestore.instance.collection('files').doc('${widget.id}').get();
+      print(responce);
       setState(() {
         siteDetails = SiteDetails.fromJson(jsonDecode(responce.data));
         if (siteDetails != null) {
@@ -72,9 +176,9 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
           projectStartedOn = siteDetails.data[0].projectStartedOn;
           estimatedCompletionOfProject = siteDetails.data[0].estimatedCompletionOfProject;
           statusOfProject = siteDetails.data[0].statusOfProject;
-          estimationAndBoqFile = siteDetails.data[0].estimationAndBoqFile;
-          threeDRendersFile = siteDetails.data[0].threeDRendersFile;
-          drawingsFile = siteDetails.data[0].drawingsFile;
+          estimationAndBoqFile = res.data()['estimation'];
+          threeDRendersFile = res.data()['render'];
+          drawingsFile = res.data()['drawing'];
         }
       });
       print(responce);
@@ -102,7 +206,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
       'categoryOfWork': categoryOfWork,
       'projectStartedOn': projectStartedOn,
       'estimatedCompletionOfProject': estimatedCompletionOfProject,
-      'statusOfProject': statusOfProject
+      'statusOfProject': statusOfProject,
     };
     FormData data = FormData.fromMap(mapData);
     try {
@@ -136,7 +240,10 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
         centerTitle: true,
       ),
       body: isLoading
-          ? Center(child: Padding(padding: const EdgeInsets.all(8.0), child: CircularProgressIndicator()))
+          ? Column(children: [
+              Center(child: Padding(padding: const EdgeInsets.all(25), child: CircularProgressIndicator())),
+              if (progress != null) Text(progress)
+            ])
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -184,6 +291,18 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                                 onChange: (String value) {
                                   setState(() => contactMailId = value);
                                 }),
+                            dropDownBox(
+                                list: categoryList,
+                                value: categoryOfWork != '' && categoryList.contains(categoryOfWork)
+                                    ? categoryOfWork
+                                    : null,
+                                onChange: (String value) => setState(() => categoryOfWork = value),
+                                title: 'Category of work'),
+                            dropDownBox(
+                                list: statusList,
+                                onChange: (String value) => setState(() => statusOfProject = value),
+                                value: statusOfProject != '' ? statusOfProject : null,
+                                title: 'Status Of Project'),
                             textWidget(
                                 title: 'Client GST',
                                 controller: clientGst,
@@ -225,7 +344,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                                     if (estimationAndBoqFile.isNotEmpty)
                                       gridCard(<Widget>[
                                         for (int i = 0; i < estimationAndBoqFile.length; i++)
-                                          gridItem(estimationAndBoqFile[i].fileUrl)
+                                          gridItem(estimationAndBoqFile[i])
                                       ]),
 
                                   /// 3d renders
@@ -240,7 +359,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                                     if (threeDRendersFile.isNotEmpty)
                                       gridCard(<Widget>[
                                         for (int i = 0; i < threeDRendersFile.length; i++)
-                                          gridItem(threeDRendersFile[i].fileUrl)
+                                          gridItem(threeDRendersFile[i])
                                       ]),
 
                                   /// drawings
@@ -254,10 +373,18 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                                   if (drawingsFile != null)
                                     if (drawingsFile.isNotEmpty)
                                       gridCard(<Widget>[
-                                        for (int i = 0; i < drawingsFile.length; i++) gridItem(drawingsFile[i].fileUrl)
+                                        for (int i = 0; i < drawingsFile.length; i++) gridItem(drawingsFile[i])
                                       ]),
                                 ],
-                              )
+                              ),
+                            if (widget.edit)
+                              Column(
+                                children: [
+                                  estimationField(context),
+                                  renderField(context),
+                                  drawingsField(context),
+                                ],
+                              ),
                           ],
                         )
                 ],
@@ -266,8 +393,122 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
     );
   }
 
-  Widget gridItem(String _url) {
-    String url = 'http://$_url';
+  Widget renderField(BuildContext context) {
+    return filePicker(
+      context,
+      title: '3D Renders',
+      file: renders,
+      selectFile: () {
+        selectRenderFile();
+      },
+      remove: (int value) {
+        setState(() {
+          renders.removeAt(value);
+        });
+      },
+    );
+  }
+
+  Widget drawingsField(BuildContext context) {
+    return filePicker(
+      context,
+      title: 'Drawings',
+      file: drawings,
+      selectFile: () {
+        selectDrawingFile();
+      },
+      remove: (int value) {
+        setState(() {
+          drawings.removeAt(value);
+        });
+      },
+    );
+  }
+
+  Widget estimationField(BuildContext context) {
+    return filePicker(
+      context,
+      title: 'Estimation & BOQ',
+      file: estimation,
+      selectFile: () {
+        selectEstimationFile();
+      },
+      remove: (int value) {
+        setState(() {
+          estimation.removeAt(value);
+        });
+      },
+    );
+  }
+
+  Widget filePicker(BuildContext context,
+      {@required String title, @required List<File> file, selectFile(), Function(int) remove}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+      child: Column(
+        children: [
+          Row(children: [
+            Text('$title: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Container(
+                child: RaisedButton.icon(
+                    onPressed: () {
+                      selectFile();
+                    },
+                    icon: Icon(Icons.folder_open),
+                    label: Text("CHOOSE FILE"),
+                    color: Colors.redAccent,
+                    colorBrightness: Brightness.dark))
+          ]),
+          // if (file.isNotEmpty)
+          //   for (int i = 0; i < file.length; i++)
+          //     Row(children: [
+          //       Container(
+          //           margin: EdgeInsets.all(5),
+          //           width: MediaQuery.of(context).size.width - 82,
+          //           child: Text(basename(file[i].path))),
+          //       InkWell(
+          //           onTap: () {
+          //             remove(i);
+          //           },
+          //           child: Icon(Icons.cancel_sharp))
+          //     ]),
+        ],
+      ),
+    );
+  }
+
+  Widget dropDownBox(
+      {@required List<String> list, @required Function(String) onChange, @required value, @required String title}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+          decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(4)),
+          child: DropdownButton<String>(
+            value: value,
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            isExpanded: true,
+            underline: Container(height: 0),
+            onChanged: onChange,
+            items: list.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        )
+      ]),
+    );
+  }
+
+  Widget gridItem(String url) {
     Dio _dio = Dio();
 
     String path = "${dir.path}/${getFileName(url)}";
@@ -357,12 +598,16 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
 
   String getFileName(String data) {
     List<String> url = data.split("/");
-    return url[url.length - 1];
+    List<String> name = url[url.length - 1].split("?");
+    print(name[0]);
+    return name[0];
   }
 
   String getFileType(String data) {
     List<String> url = data.split(".");
-    return url[url.length - 1];
+    List<String> name = url[url.length - 1].split("?");
+    print(name[0]);
+    return name[0];
   }
 
   Widget textWidget(

@@ -16,6 +16,7 @@ class DashboardProvider extends ChangeNotifier {
       var responce = await dio.get(
         'http://1000bricks.meatmatestore.in/thousandBricksApi/getDataForDashboard.php',
       );
+      print(responce);
       _dashboardData = DashboardData.fromJson(jsonDecode(responce.data));
       _isLoading = false;
       notifyListeners();

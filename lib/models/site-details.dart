@@ -35,26 +35,31 @@ class Data {
   String estimatedCompletionOfProject;
   String statusOfProject;
   List<EstimationAndBoqFile> estimationAndBoqFile;
+  List estimationAndBoqLink;
   List<ThreeDRenderFile> threeDRendersFile;
+  List threeDRendersLink;
   List<DrawingFile> drawingsFile;
+  List drawingsLink;
 
-  Data({
-    this.id,
-    this.siteName,
-    this.siteLocation,
-    this.clientName,
-    this.clientBillingAddress,
-    this.clientGst,
-    this.contactMailId,
-    this.mobileNumber,
-    this.categoryOfWork,
-    this.projectStartedOn,
-    this.estimatedCompletionOfProject,
-    this.statusOfProject,
-    this.estimationAndBoqFile,
-    this.threeDRendersFile,
-    this.drawingsFile,
-  });
+  Data(
+      {this.id,
+      this.siteName,
+      this.siteLocation,
+      this.clientName,
+      this.clientBillingAddress,
+      this.clientGst,
+      this.contactMailId,
+      this.mobileNumber,
+      this.categoryOfWork,
+      this.projectStartedOn,
+      this.estimatedCompletionOfProject,
+      this.statusOfProject,
+      this.estimationAndBoqFile,
+      this.estimationAndBoqLink,
+      this.threeDRendersFile,
+      this.threeDRendersLink,
+      this.drawingsFile,
+      this.drawingsLink});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'] ?? '';
@@ -69,6 +74,9 @@ class Data {
     projectStartedOn = json['projectStartedOn'] ?? '';
     estimatedCompletionOfProject = json['estimatedCompletionOfProject'] ?? '';
     statusOfProject = json['statusOfProject'] ?? '';
+    estimationAndBoqLink = json['estimationAndBoqLink'] ?? [];
+    threeDRendersLink = json['threeDRendersLink'] ?? [];
+    drawingsLink = json['drawingsLink'] ?? [];
     if (json['estimationAndBoqFile'] != null) {
       estimationAndBoqFile = new List<EstimationAndBoqFile>();
       json['estimationAndBoqFile'].forEach((v) {

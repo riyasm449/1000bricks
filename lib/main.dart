@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/views/expence/add-expence.dart';
 import 'package:thousandbricks/views/expence/expence.dart';
+import 'package:thousandbricks/views/home/view-expences.dart';
 import 'package:thousandbricks/views/income/add-income.dart';
 import 'package:thousandbricks/views/income/income.dart';
 import 'package:thousandbricks/views/meeting/add-meeting.dart';
@@ -13,6 +14,8 @@ import 'package:thousandbricks/views/meeting/meeting.dart';
 import 'package:thousandbricks/views/site/add-site.dart';
 import 'package:thousandbricks/views/site/site-managment.dart';
 import 'package:thousandbricks/views/splashScreen.dart';
+import 'package:thousandbricks/views/stock/master-inventary.dart';
+import 'package:thousandbricks/views/stock/stock_management.dart';
 import 'package:thousandbricks/views/supplier/add-supplier.dart';
 import 'package:thousandbricks/views/supplier/supplier-management.dart';
 
@@ -31,18 +34,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       message.data['title'],
       message.data['body'],
       NotificationDetails(
-        android: AndroidNotificationDetails(
-          channel.id,
-          channel.name,
-          channel.description,
-        ),
+        android: AndroidNotificationDetails(channel.id, channel.name, channel.description),
       ));
 }
 
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
-  'high_importance_channel', // id
-  'High Importance Notifications', // title
-  'This channel is used for important notifications.', // description
+  'high_importance_channel',
+  'High Importance Notifications',
+  'This channel is used for important notifications.',
   importance: Importance.high,
 );
 
@@ -83,19 +82,17 @@ class _MyAppState extends State<MyApp> {
             notification.title,
             notification.body,
             NotificationDetails(
-              android: AndroidNotificationDetails(
-                channel.id,
-                channel.name,
-                channel.description,
-                icon: android?.smallIcon,
-              ),
+              android:
+                  AndroidNotificationDetails(channel.id, channel.name, channel.description, icon: android?.smallIcon),
             ));
       }
     });
+
     getToken();
   }
 
   getToken() async {
+    await FirebaseMessaging.instance.subscribeToTopic('meeting');
     token = await FirebaseMessaging.instance.getToken();
     setState(() {
       token = token;
@@ -115,7 +112,6 @@ class _MyAppState extends State<MyApp> {
           debugShowCheckedModeBanner: false,
           title: '1000 Bricks',
           theme: appTheme,
-          // home: AddSupplier(),
           home: SplashScreen(),
           routes: <String, WidgetBuilder>{
             '/login': (BuildContext context) => LoginPage(),
@@ -130,6 +126,9 @@ class _MyAppState extends State<MyApp> {
             '/add-expence': (BuildContext context) => AddExpencePage(),
             '/expence': (BuildContext context) => ExpenseManagement(),
             '/income': (BuildContext context) => IncomeManagement(),
+            '/add-stock': (BuildContext context) => AddStock(),
+            '/stock': (BuildContext context) => MasterInventory(),
+            '/money': (BuildContext context) => DashboardExpenses(),
           }),
     );
   }

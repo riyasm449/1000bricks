@@ -42,8 +42,10 @@ class _AddSupplierState extends State<AddSupplier> {
       'contactNumber': contactNumber.text,
       'alternateContactNumber': alternateNumber.text,
       'eMail': mail.text,
-      'bankAccountDetails':
-          {'accNumber': accNumber.text, 'branch': bankBranch.text, 'name': bankName.text, 'ifsc': IFSC.text}.toString(),
+      'accountNumber': accNumber.text,
+      'bankBranch': bankBranch.text,
+      'bankName': bankName.text,
+      'ifscCode': IFSC.text,
       'address': address.text,
       'gstNumber': GSTnumber.text
     };
@@ -82,6 +84,18 @@ class _AddSupplierState extends State<AddSupplier> {
     GSTnumber.clear();
   }
 
+  bool valid() {
+    return companyName.text != '' &&
+        contactPerson.text != '' &&
+        contactNumber.text != '' &&
+        accNumber.text != '' &&
+        bankName.text != '' &&
+        bankBranch.text != '' &&
+        IFSC.text != '' &&
+        address.text != '' &&
+        GSTnumber.text != '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,10 +109,10 @@ class _AddSupplierState extends State<AddSupplier> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  textWidget(title: 'Company Name', controller: companyName),
-                  textWidget(title: 'Contact Person', controller: contactPerson),
-                  textWidget(title: 'Contact Number', controller: contactNumber),
-                  textWidget(title: 'Alternate Contact Number', controller: alternateNumber),
+                  textWidget(title: 'Company Name *', controller: companyName),
+                  textWidget(title: 'Contact Person *', controller: contactPerson),
+                  numberField(title: 'Contact Number *', controller: contactNumber, maxLength: 10),
+                  numberField(title: 'Alternate Contact Number', controller: alternateNumber, maxLength: 10),
                   textWidget(title: 'Mail Id', controller: mail),
                   Container(
                     width: MediaQuery.of(context).size.width,
@@ -112,23 +126,26 @@ class _AddSupplierState extends State<AddSupplier> {
                         BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
                     child: Column(
                       children: [
-                        textWidget(title: 'Account Number', controller: accNumber),
-                        textWidget(title: 'Bank Name', controller: bankName),
-                        textWidget(title: 'Bank Branch', controller: bankBranch),
-                        textWidget(title: 'IFSC Code', controller: IFSC),
+                        textWidget(title: 'Account Number *', controller: accNumber),
+                        textWidget(title: 'Bank Name *', controller: bankName),
+                        textWidget(title: 'Bank Branch *', controller: bankBranch),
+                        textWidget(title: 'IFSC Code *', controller: IFSC),
                       ],
                     ),
                   ),
                   textWidget(
-                      title: 'Billing Address',
+                      title: 'Billing Address *',
                       controller: address,
                       minLine: 5,
                       maxLine: 8,
                       padding: const EdgeInsets.all(10)),
-                  textWidget(title: 'Client GST', controller: GSTnumber),
+                  textWidget(title: 'Client GST *', controller: GSTnumber),
                   RaisedButton.icon(
                       onPressed: () {
-                        addSupplier();
+                        if (valid()) {
+                          addSupplier();
+                        } else
+                          Commons.snackBar(scaffoldKey, 'Fill all the fields with *');
                       },
                       icon: Icon(Icons.save),
                       label: Text("ADD SUPPLIER"),

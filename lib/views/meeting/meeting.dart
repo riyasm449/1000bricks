@@ -29,7 +29,8 @@ class _MeetingsManagementState extends State<MeetingsManagement> {
             StreamBuilder<QuerySnapshot>(
               stream: firestoreInstance
                   .collection("meeting")
-                  .where("dateTime", isGreaterThan: DateTime.now().toString())
+                  .orderBy('dateTime', descending: true)
+                  // .where("dateTime", isGreaterThan: DateTime.now().toString())
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {

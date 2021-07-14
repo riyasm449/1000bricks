@@ -38,7 +38,11 @@ class _AddExpencePageState extends State<AddExpencePage> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
 
   bool validate() {
-    return amount.text != '' && expenseBy.text != '' && selectedDate != null && selectedExpenseLedger != null;
+    return amount.text != '0' &&
+        amount.text != '' &&
+        expenseBy.text != '' &&
+        selectedDate != null &&
+        selectedExpenseLedger != null;
   }
 
   addExpence() async {
@@ -137,7 +141,8 @@ class _AddExpencePageState extends State<AddExpencePage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        title: Text('Add Expense', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+        title: Text('Add General Expense',
+            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: isLoading
@@ -147,13 +152,13 @@ class _AddExpencePageState extends State<AddExpencePage> {
                 children: [
                   SizedBox(height: 10),
                   dateCard(
-                      title: 'Date Of Expense:',
+                      title: 'Date Of Expense *:',
                       controller: dateController,
                       onTap: () {
                         selectDate(context);
                       }),
                   textWidget(title: 'Description', controller: description),
-                  textWidget(title: 'Expense By', controller: expenseBy),
+                  textWidget(title: 'Expense By *', controller: expenseBy),
                   dropDownBox(
                       list: expenceLedger,
                       onChange: (String value) {
@@ -163,9 +168,9 @@ class _AddExpencePageState extends State<AddExpencePage> {
                           });
                       },
                       value: selectedExpenseLedger,
-                      title: 'Expense Ledger'),
+                      title: 'Expense Ledger *'),
                   textWidget(title: 'Remarks', controller: comment),
-                  numberField(title: 'Amount', controller: amount),
+                  numberField(title: 'Amount *', controller: amount),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                     margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
@@ -204,12 +209,12 @@ class _AddExpencePageState extends State<AddExpencePage> {
                         }),
                   if (widget.expence == null)
                     FlatButton(
-                      color: Commons.bgColor.withOpacity(.7),
+                      color: Commons.bgColor,
                       onPressed: () {
                         if (validate()) {
                           addExpence();
                         } else {
-                          Commons.snackBar(scaffoldKey, 'Fill all The Fields');
+                          Commons.snackBar(scaffoldKey, 'Fill all the fields with *');
                         }
                       },
                       child: Text('ADD EXPENSE', style: TextStyle(color: Colors.white)),

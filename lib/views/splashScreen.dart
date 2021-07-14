@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/userProvider.dart';
@@ -23,6 +25,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> checkLoginStatus() async {
     if (authProvider.auth.currentUser != null) {
+      String token = await FirebaseMessaging.instance.getToken();
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser.uid)
+          .update({'token': token});
       await userProvider.getUserDetails(FirebaseAuth.instance.currentUser.uid);
       Navigator.pushReplacementNamed(context, '/home');
     } else {

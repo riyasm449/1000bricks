@@ -6,7 +6,7 @@
    <application
        android:name=".Application"
        android:label="1000 Bricks"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
