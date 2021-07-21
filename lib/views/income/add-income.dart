@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/income.dart';
 import 'package:thousandbricks/models/sites.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -85,8 +86,10 @@ class _AddIncomePageState extends State<AddIncomePage> {
       var responce =
           await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewIncome.php', data: data);
       Commons.snackBar(scaffoldKey, 'Added Income');
-      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       clear();
+      Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
+      Provider.of<ManagementProvider>(context, listen: false).getAllIncome();
+      Navigator.pop(context);
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently Facing Some Problem');
       print(e);

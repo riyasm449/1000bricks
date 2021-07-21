@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 import 'package:thousandbricks/views/supplier/pay-supplier.dart';
@@ -64,7 +65,8 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
           data: data);
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
-      // getDetails();
+      Provider.of<ManagementProvider>(context, listen: false).getAllSuppliers();
+      Navigator.pop(context);
       print('Added Successfully...');
       print(responce);
     } catch (e) {

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
+import 'package:thousandbricks/views/catalogue/add-catalogue.dart';
 import 'package:thousandbricks/views/expence/add-expence.dart';
 import 'package:thousandbricks/views/expence/expence.dart';
 import 'package:thousandbricks/views/home/view-expences.dart';
@@ -14,8 +16,8 @@ import 'package:thousandbricks/views/meeting/meeting.dart';
 import 'package:thousandbricks/views/site/add-site.dart';
 import 'package:thousandbricks/views/site/site-managment.dart';
 import 'package:thousandbricks/views/splashScreen.dart';
+import 'package:thousandbricks/views/stock/add-stock.dart';
 import 'package:thousandbricks/views/stock/master-inventary.dart';
-import 'package:thousandbricks/views/stock/stock_management.dart';
 import 'package:thousandbricks/views/supplier/add-supplier.dart';
 import 'package:thousandbricks/views/supplier/supplier-management.dart';
 
@@ -107,6 +109,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => DashboardProvider()),
+        ChangeNotifierProvider(create: (context) => ManagementProvider()),
       ],
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -129,6 +132,8 @@ class _MyAppState extends State<MyApp> {
             '/add-stock': (BuildContext context) => AddStock(),
             '/stock': (BuildContext context) => MasterInventory(),
             '/money': (BuildContext context) => DashboardExpenses(),
+            '/images': (BuildContext context) => DashboardExpenses(),
+            '/add-images': (BuildContext context) => AddCatalogue(),
           }),
     );
   }

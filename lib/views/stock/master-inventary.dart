@@ -1,11 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:thousandbricks/models/stock.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
-import 'package:thousandbricks/utils/dio.dart';
 
 class MasterInventory extends StatefulWidget {
   @override
@@ -13,39 +10,20 @@ class MasterInventory extends StatefulWidget {
 }
 
 class _MasterInventoryState extends State<MasterInventory> {
-  bool isLoading = false;
-  String progress;
-  Stocks sites;
   DashboardProvider dashboardProvider;
+  ManagementProvider managementProvider;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => getAllInventory());
-  }
-
-  void getAllInventory() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getStockDetails.php?type=all',
-      );
-      print(responce);
-      setState(() {
-        sites = Stocks.fromJson(jsonDecode(responce.data));
-      });
-    } catch (e) {
-      print(e);
-    }
-    setState(() {
-      isLoading = false;
-    });
+    managementProvider = Provider.of<ManagementProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) => managementProvider.getAllStock());
   }
 
   @override
   Widget build(BuildContext context) {
     dashboardProvider = Provider.of<DashboardProvider>(context);
+    managementProvider = Provider.of<ManagementProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title:
@@ -55,7 +33,7 @@ class _MasterInventoryState extends State<MasterInventory> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (isLoading) CircularProgressIndicator(),
+            if (managementProvider.isLoading) CircularProgressIndicator(),
             Padding(
               padding: const EdgeInsets.all(15),
               child: Row(
@@ -105,14 +83,18 @@ class _MasterInventoryState extends State<MasterInventory> {
                       tableTitle('Category', bold: true),
                       tableTitle('Amount', bold: true),
                     ]),
-                    if (!isLoading && sites != null)
-                      if (sites.data != null)
-                        for (int index = 0; index < sites.data.length; index++)
+                    if (!managementProvider.isLoading && managementProvider.stockManagement != null)
+                      if (managementProvider.stockManagement.data != null)
+                        for (int index = 0; index < managementProvider.stockManagement.data.length; index++)
                           TableRow(children: [
-                            tableTitle(sites.data[index]?.supplierName ?? '', textColor: Colors.black),
-                            tableTitle(sites.data[index]?.siteName ?? '', textColor: Colors.black),
-                            tableTitle(sites.data[index]?.category ?? '', textColor: Colors.black),
-                            tableTitle(sites.data[index]?.totalAmount ?? '', textColor: Colors.black),
+                            tableTitle(managementProvider.stockManagement.data[index]?.supplierName ?? '',
+                                textColor: Colors.black),
+                            tableTitle(managementProvider.stockManagement.data[index]?.siteName ?? '',
+                                textColor: Colors.black),
+                            tableTitle(managementProvider.stockManagement.data[index]?.category ?? '',
+                                textColor: Colors.black),
+                            tableTitle(managementProvider.stockManagement.data[index]?.totalAmount ?? '',
+                                textColor: Colors.black),
                           ]),
                   ]),
             ),

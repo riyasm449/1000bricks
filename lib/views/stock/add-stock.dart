@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/sites.dart';
 import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -114,7 +115,7 @@ class _AddStockState extends State<AddStock> {
         break;
       }
     }
-    return sites.data[index].id;
+    return suppliers.data[index].id;
   }
 
   addStock() async {
@@ -137,6 +138,8 @@ class _AddStockState extends State<AddStock> {
       var responce = await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewStock.php', data: data);
       Commons.snackBar(scaffoldKey, 'Added Stock');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
+      Provider.of<ManagementProvider>(context, listen: false).getAllStock();
+      Navigator.pop(context);
       clear();
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently Facing Some Problem');

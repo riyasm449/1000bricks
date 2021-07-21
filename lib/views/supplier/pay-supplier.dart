@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -57,8 +58,8 @@ class _SupplierPayState extends State<SupplierPay> {
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
       Navigator.pop(context);
+      Provider.of<ManagementProvider>(context, listen: false).getAllSuppliers();
       Navigator.pop(context);
-      // getDetails();
       print('Added Successfully...');
       print(responce);
     } catch (e) {

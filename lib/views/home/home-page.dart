@@ -354,6 +354,47 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
+                ListTile(
+                  onTap: () {
+                    setState(() {
+                      showStock = !showStock;
+                    });
+                  },
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Catalogue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Icon(!showStock ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                        ],
+                      ),
+                      if (showStock)
+                        ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/add-images');
+                            },
+                            title: Row(
+                              children: [
+                                Icon(Icons.add_a_photo_outlined, size: 20),
+                                Text(' Add Catalogue', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                              ],
+                            )),
+                      if (showStock)
+                        ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/stock');
+                            },
+                            title: Row(
+                              children: [
+                                Icon(Icons.storage, size: 20),
+                                Text(' Master Inventory', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                              ],
+                            )),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

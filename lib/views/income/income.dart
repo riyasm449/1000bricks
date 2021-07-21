@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:thousandbricks/models/income.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 import 'package:thousandbricks/views/income/add-income.dart';
@@ -18,34 +16,27 @@ class IncomeManagement extends StatefulWidget {
 
 class _IncomeManagementState extends State<IncomeManagement> {
   bool isLoading = false;
-  String progress;
-  Income sites;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
+  ManagementProvider managementProvider;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => getAllIncome());
+    managementProvider = Provider.of<ManagementProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) => managementProvider.getAllIncome());
+    WidgetsBinding.instance.addPostFrameCallback((_) => managementProvider.getAllSites());
   }
 
-  void getAllIncome() async {
-    setState(() {
-      isLoading = true;
-      sites = null;
-    });
-    try {
-      var responce = await dio.get(
-        'http://1000bricks.meatmatestore.in/thousandBricksApi/getIncomeDetails.php?type=all',
-      );
-      print(responce);
-      setState(() {
-        sites = Income.fromJson(jsonDecode(responce.data));
-      });
-    } catch (e) {
-      print(e);
+  String getSiteName(String id) {
+    String name = '';
+    if (managementProvider.siteManagement?.data != null) {
+      for (int i = 0; i < managementProvider.siteManagement.data.length; i++) {
+        if (managementProvider.siteManagement.data[i].id == id) {
+          name = managementProvider.siteManagement.data[i].siteName;
+          break;
+        }
+      }
     }
-    setState(() {
-      isLoading = false;
-    });
+    return name;
   }
 
   void deleteData(String id) async {
@@ -60,7 +51,7 @@ class _IncomeManagementState extends State<IncomeManagement> {
       print(responce);
       Commons.snackBar(scaffoldKey, 'Deleted Successfully');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
-      getAllIncome();
+      managementProvider.getAllIncome();
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently Facing some Problem');
       print(e);
@@ -72,6 +63,7 @@ class _IncomeManagementState extends State<IncomeManagement> {
 
   @override
   Widget build(BuildContext context) {
+    managementProvider = Provider.of<ManagementProvider>(context);
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
@@ -82,36 +74,37 @@ class _IncomeManagementState extends State<IncomeManagement> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (isLoading) CircularProgressIndicator(),
+            if (isLoading || managementProvider.isLoading) CircularProgressIndicator(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
               child: Table(border: TableBorder.all(), children: [
                 TableRow(children: [
                   tableTitle('Site Name', bold: true),
-                  tableTitle(' Credit Amount ', bold: true),
+                  tableTitle('Credit Amount ', bold: true),
                   tableTitle('View', bold: true),
                   tableTitle('Delete', bold: true),
                 ]),
-                if (!isLoading && sites != null)
-                  if (sites.data?.isNotEmpty)
-                    for (int index = 0; index < sites.data.length; index++)
+                if (!managementProvider.isLoading && !isLoading && managementProvider.incomeManagement != null)
+                  if (managementProvider.incomeManagement.data?.isNotEmpty)
+                    for (int index = 0; index < managementProvider.incomeManagement.data.length; index++)
                       TableRow(children: [
-                        tableTitle(sites.data[index].site,
+                        tableTitle(getSiteName(managementProvider.incomeManagement.data[index].site),
                             textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
-                        tableTitle(sites.data[index].amount, textColor: Colors.black),
+                        tableTitle(managementProvider.incomeManagement.data[index].amount, textColor: Colors.black),
                         Center(
                             child: IconButton(
                                 onPressed: () {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (BuildContext context) => AddIncomePage(income: sites.data[index])));
+                                          builder: (BuildContext context) =>
+                                              AddIncomePage(income: managementProvider.incomeManagement.data[index])));
                                 },
                                 icon: Icon(Icons.remove_red_eye))),
                         Center(
                             child: IconButton(
                                 onPressed: () {
-                                  deleteData(sites.data[index].id);
+                                  deleteData(managementProvider.incomeManagement.data[index].id);
                                 },
                                 icon: Icon(Icons.delete)))
                       ]),

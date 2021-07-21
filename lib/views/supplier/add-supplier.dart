@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/suppliers.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -58,6 +59,8 @@ class _AddSupplierState extends State<AddSupplier> {
       });
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
+      Provider.of<ManagementProvider>(context, listen: false).getAllSuppliers();
+      Navigator.pop(context);
       print(responce);
       clear();
     } catch (e) {

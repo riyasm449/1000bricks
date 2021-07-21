@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/models/site-details.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -221,6 +222,8 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
       Commons.snackBar(scaffoldKey, 'Updated Site Details Successfully');
       getSiteDetails();
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
+      Provider.of<ManagementProvider>(context, listen: false).getAllSites();
+      Navigator.pop(context);
       print(responce);
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently facing some Issue');

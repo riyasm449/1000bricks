@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
+import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/utils/commons.dart';
 import 'package:thousandbricks/utils/dio.dart';
 
@@ -217,6 +218,8 @@ class _AddSiteState extends State<AddSite> {
 
       Commons.snackBar(scaffoldKey, 'Site Added');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
+      Provider.of<ManagementProvider>(context, listen: false).getAllSites();
+      Navigator.pop(context);
       clear();
     } catch (e) {
       Commons.snackBar(scaffoldKey, 'Currently facing some problem');
