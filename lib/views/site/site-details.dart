@@ -141,6 +141,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
       setState(() {
         isLoading = false;
       });
+      getSiteDetails();
       Commons.snackBar(scaffoldKey, 'Files Added');
       return true;
     } catch (e) {

@@ -65,15 +65,6 @@ class _AddCatalogueState extends State<AddCatalogue> {
     return sites.data[index].id;
   }
 
-  addIncome() async {
-    setState(() {
-      isLoading = true;
-    });
-    setState(() {
-      isLoading = false;
-    });
-  }
-
   selectFiles() async {
     List<File> _files = await FilePicker.getMultiFile(
       type: FileType.custom,
@@ -101,11 +92,17 @@ class _AddCatalogueState extends State<AddCatalogue> {
           print(link);
         });
       }
-      FirebaseFirestore.instance
-          .collection('catalogue')
-          .doc('${getSiteId()}')
-          .set({'images': FieldValue.arrayUnion(filesData)});
+      List doc = [];
+      try {
+        var res = await FirebaseFirestore.instance.collection('catalogue').doc('${getSiteId()}').get();
+        doc = res.data()['images'];
+      } catch (e) {
+        doc = [];
+      }
+      doc.addAll(filesData);
+      await FirebaseFirestore.instance.collection('catalogue').doc('${getSiteId()}').set({'images': doc});
       setState(() {
+        files = [];
         isLoading = false;
       });
       Commons.snackBar(scaffoldKey, 'Files Added');
@@ -123,7 +120,6 @@ class _AddCatalogueState extends State<AddCatalogue> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) => getAllSites());
   }
 
@@ -136,7 +132,10 @@ class _AddCatalogueState extends State<AddCatalogue> {
         centerTitle: true,
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [Center(child: CircularProgressIndicator()), if (progress != null) Text(progress)],
+            )
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -169,6 +168,8 @@ class _AddCatalogueState extends State<AddCatalogue> {
                     onPressed: () {
                       if (files.isNotEmpty) {
                         uploadFile(files);
+                      } else {
+                        Commons.snackBar(scaffoldKey, 'Add Some Images');
                       }
                     },
                     child: Text('ADD IMAGES', style: TextStyle(color: Colors.white)),

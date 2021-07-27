@@ -23,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   bool showIncome = false;
   bool showExpence = false;
   bool showStock = false;
+  bool showCatalogue = false;
   // bool isLoading = false;
   @override
   void initState() {
@@ -357,7 +358,7 @@ class _HomePageState extends State<HomePage> {
                 ListTile(
                   onTap: () {
                     setState(() {
-                      showStock = !showStock;
+                      showCatalogue = !showCatalogue;
                     });
                   },
                   title: Column(
@@ -367,10 +368,10 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Catalogue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Icon(!showStock ? Icons.arrow_drop_down : Icons.arrow_drop_up),
+                          Icon(!showCatalogue ? Icons.arrow_drop_down : Icons.arrow_drop_up),
                         ],
                       ),
-                      if (showStock)
+                      if (showCatalogue)
                         ListTile(
                             onTap: () {
                               Navigator.pushNamed(context, '/add-images');
@@ -381,15 +382,15 @@ class _HomePageState extends State<HomePage> {
                                 Text(' Add Catalogue', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                               ],
                             )),
-                      if (showStock)
+                      if (showCatalogue)
                         ListTile(
                             onTap: () {
-                              Navigator.pushNamed(context, '/stock');
+                              Navigator.pushNamed(context, '/images');
                             },
                             title: Row(
                               children: [
                                 Icon(Icons.storage, size: 20),
-                                Text(' Master Inventory', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                Text(' Catalogue', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                               ],
                             )),
                     ],

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:thousandbricks/providers/dashboard-provider.dart';
 import 'package:thousandbricks/providers/management.dart';
 import 'package:thousandbricks/views/catalogue/add-catalogue.dart';
+import 'package:thousandbricks/views/catalogue/catalogue.dart';
 import 'package:thousandbricks/views/expence/add-expence.dart';
 import 'package:thousandbricks/views/expence/expence.dart';
 import 'package:thousandbricks/views/home/view-expences.dart';
@@ -132,7 +133,7 @@ class _MyAppState extends State<MyApp> {
             '/add-stock': (BuildContext context) => AddStock(),
             '/stock': (BuildContext context) => MasterInventory(),
             '/money': (BuildContext context) => DashboardExpenses(),
-            '/images': (BuildContext context) => DashboardExpenses(),
+            '/images': (BuildContext context) => Catalogue(),
             '/add-images': (BuildContext context) => AddCatalogue(),
           }),
     );
