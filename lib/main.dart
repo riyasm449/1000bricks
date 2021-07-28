@@ -9,6 +9,7 @@ import 'package:thousandbricks/views/catalogue/add-catalogue.dart';
 import 'package:thousandbricks/views/catalogue/catalogue.dart';
 import 'package:thousandbricks/views/expence/add-expence.dart';
 import 'package:thousandbricks/views/expence/expence.dart';
+import 'package:thousandbricks/views/home/home-site.dart';
 import 'package:thousandbricks/views/home/view-expences.dart';
 import 'package:thousandbricks/views/income/add-income.dart';
 import 'package:thousandbricks/views/income/income.dart';
@@ -116,11 +117,14 @@ class _MyAppState extends State<MyApp> {
           debugShowCheckedModeBanner: false,
           title: '1000 Bricks',
           theme: appTheme,
+          // home: HomeSite(),
           home: SplashScreen(),
           routes: <String, WidgetBuilder>{
             '/login': (BuildContext context) => LoginPage(),
             '/home': (BuildContext context) => HomePage(),
+            '/home-site': (BuildContext context) => HomeSite(),
             '/site': (BuildContext context) => SiteManagement(),
+            '/completed-site': (BuildContext context) => SiteManagement(showTerminated: true),
             '/add-site': (BuildContext context) => AddSite(),
             '/supplier': (BuildContext context) => SupplierManagement(),
             '/add-supplier': (BuildContext context) => AddSupplier(),

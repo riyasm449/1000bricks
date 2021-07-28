@@ -29,10 +29,11 @@ class ManagementProvider with ChangeNotifier {
 
   void getAllSites() async {
     _isLoading = true;
+    _siteManagement = null;
     notifyListeners();
     try {
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=all',
+        'thousandBricksApi/getSiteDetails.php?type=all',
       );
       print(responce);
       _siteManagement = Sites.fromJson(jsonDecode(responce.data));
@@ -47,10 +48,11 @@ class ManagementProvider with ChangeNotifier {
 
   void getAllSuppliers() async {
     _isLoading = true;
+    _supplierManagement = null;
     notifyListeners();
     try {
       var responce = await dio.get(
-        'http://1000bricks.meatmatestore.in/thousandBricksApi/getSupplierDetails.php?type=all',
+        'thousandBricksApi/getSupplierDetails.php?type=all',
       );
       print(responce);
       _supplierManagement = Suppliers.fromJson(jsonDecode(responce.data));
@@ -65,10 +67,11 @@ class ManagementProvider with ChangeNotifier {
 
   void getAllIncome() async {
     _isLoading = true;
+    _incomeManagement = null;
     notifyListeners();
     try {
       var responce = await dio.get(
-        'http://1000bricks.meatmatestore.in/thousandBricksApi/getIncomeDetails.php?type=all',
+        'thousandBricksApi/getIncomeDetails.php?type=all',
       );
       print(responce);
       _incomeManagement = Income.fromJson(jsonDecode(responce.data));
@@ -83,10 +86,11 @@ class ManagementProvider with ChangeNotifier {
 
   void getAllGeneralExpenses() async {
     _isLoading = true;
+    _generalExpenceManagement = null;
     notifyListeners();
     try {
       var responce = await dio.get(
-        'http://1000bricks.meatmatestore.in/thousandBricksApi/getExpenseDetails.php?type=all',
+        'thousandBricksApi/getExpenseDetails.php?type=all',
       );
       print(responce);
       _generalExpenceManagement = Expenses.fromJson(jsonDecode(responce.data));
@@ -101,10 +105,11 @@ class ManagementProvider with ChangeNotifier {
 
   void getAllStock() async {
     _isLoading = true;
+    _stockManagement = null;
     notifyListeners();
     try {
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getStockDetails.php?type=all',
+        'thousandBricksApi/getStockDetails.php?type=all',
       );
       print(responce);
       _stockManagement = Stocks.fromJson(jsonDecode(responce.data));

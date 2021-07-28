@@ -198,8 +198,8 @@ class _AddSiteState extends State<AddSite> {
     FormData data = FormData.fromMap(mapData);
     print(data.files);
     try {
-      var responce = await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewSite.php', data: data,
-          onSendProgress: (int sent, int total) {
+      var responce =
+          await dio.post('thousandBricksApi/addNewSite.php', data: data, onSendProgress: (int sent, int total) {
         String percentage = (sent / total * 100).toStringAsFixed(2);
         setState(() {
           progress = percentage + " % uploaded";

@@ -32,6 +32,35 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) => dashboardProvider.getDashboardData());
   }
 
+  showAlertDialog(BuildContext context) {
+    Widget okButton = FlatButton(
+      child: Text("Yes", style: TextStyle(color: Colors.green)),
+      onPressed: () async {
+        await FirebaseAuth.instance.signOut();
+        await Navigator.pushReplacementNamed(context, '/login');
+      },
+    );
+    Widget cancelButton = FlatButton(
+      child: Text("No", style: TextStyle(color: Colors.red)),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Log out',
+            style: TextStyle(color: Colors.red),
+          ),
+          content: Text('Are you sure to logout?'),
+          actions: [okButton, cancelButton],
+        );
+      },
+    );
+  }
+
   Widget notificationIcon() {
     return StreamBuilder<QuerySnapshot>(
       stream: firestoreInstance
@@ -142,6 +171,17 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Icon(Icons.home_outlined, size: 20),
                                 Text(' Site Management', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                              ],
+                            )),
+                      if (showSite)
+                        ListTile(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/completed-site');
+                            },
+                            title: Row(
+                              children: [
+                                Icon(Icons.home_outlined, size: 20),
+                                Text(' Completed Sites', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                               ],
                             )),
                     ],
@@ -424,9 +464,8 @@ class _HomePageState extends State<HomePage> {
                   },
                   child: notificationIcon()),
               InkWell(
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-                  await Navigator.pushReplacementNamed(context, '/login');
+                onTap: () {
+                  showAlertDialog(context);
                 },
                 child: Icon(Icons.logout_outlined),
               ),

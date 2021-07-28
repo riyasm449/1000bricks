@@ -52,8 +52,7 @@ class _AddSupplierState extends State<AddSupplier> {
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce =
-          await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewSupplier.php', data: data);
+      var responce = await dio.post('thousandBricksApi/addNewSupplier.php', data: data);
       setState(() {
         suppliers = Suppliers.fromJson(jsonDecode(responce.data));
       });

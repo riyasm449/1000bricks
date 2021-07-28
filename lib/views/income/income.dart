@@ -45,9 +45,7 @@ class _IncomeManagementState extends State<IncomeManagement> {
     });
     FormData data = FormData.fromMap({'id': id});
     try {
-      var responce = await dio.post(
-          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateIncomeDetails.php?type=deleteIncome',
-          data: data);
+      var responce = await dio.post('thousandBricksApi/updateIncomeDetails.php?type=deleteIncome', data: data);
       print(responce);
       Commons.snackBar(scaffoldKey, 'Deleted Successfully');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
@@ -74,18 +72,22 @@ class _IncomeManagementState extends State<IncomeManagement> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (isLoading || managementProvider.isLoading) CircularProgressIndicator(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
-              child: Table(border: TableBorder.all(), children: [
-                TableRow(children: [
-                  tableTitle('Site Name', bold: true),
-                  tableTitle('Credit Amount ', bold: true),
-                  tableTitle('View', bold: true),
-                  tableTitle('Delete', bold: true),
-                ]),
-                if (!managementProvider.isLoading && !isLoading && managementProvider.incomeManagement != null)
-                  if (managementProvider.incomeManagement.data?.isNotEmpty)
+            if (isLoading || managementProvider.isLoading) Center(child: CircularProgressIndicator()),
+            if (!managementProvider.isLoading && !isLoading && managementProvider.incomeManagement == null)
+              Commons.placholder(),
+            if (!managementProvider.isLoading && !isLoading && managementProvider.incomeManagement != null)
+              if (managementProvider.incomeManagement.data?.isEmpty) Commons.placholder(),
+            if (!managementProvider.isLoading && !isLoading && managementProvider.incomeManagement != null)
+              if (managementProvider.incomeManagement.data?.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
+                  child: Table(border: TableBorder.all(), children: [
+                    TableRow(children: [
+                      tableTitle('Site Name', bold: true),
+                      tableTitle('Credit Amount ', bold: true),
+                      tableTitle('View', bold: true),
+                      tableTitle('Delete', bold: true),
+                    ]),
                     for (int index = 0; index < managementProvider.incomeManagement.data.length; index++)
                       TableRow(children: [
                         tableTitle(getSiteName(managementProvider.incomeManagement.data[index].site),
@@ -104,15 +106,45 @@ class _IncomeManagementState extends State<IncomeManagement> {
                         Center(
                             child: IconButton(
                                 onPressed: () {
-                                  deleteData(managementProvider.incomeManagement.data[index].id);
+                                  showAlertDialog(context, managementProvider.incomeManagement.data[index].id);
+                                  // deleteData(managementProvider.incomeManagement.data[index].id);
                                 },
                                 icon: Icon(Icons.delete)))
                       ]),
-              ]),
-            ),
+                  ]),
+                ),
           ],
         ),
       ),
+    );
+  }
+
+  showAlertDialog(BuildContext context, String id) {
+    Widget okButton = FlatButton(
+      child: Text("Yes", style: TextStyle(color: Colors.green)),
+      onPressed: () {
+        deleteData(id);
+        Navigator.pop(context);
+      },
+    );
+    Widget cancelButton = FlatButton(
+      child: Text("No", style: TextStyle(color: Colors.red)),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Delete Income',
+            style: TextStyle(color: Colors.red),
+          ),
+          content: Text('Are you sure to delete?'),
+          actions: [okButton, cancelButton],
+        );
+      },
     );
   }
 

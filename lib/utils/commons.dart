@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Commons {
+  static String baseUrl = 'http://1000app.macberries.com/';
   static const hintColor = Color(0xFF4D0F29);
   static Color bgColor = Commons.colorFromHex('#72000c');
   static Color bgLightColor = Commons.colorFromHex('#a7505f');
@@ -21,5 +22,22 @@ class Commons {
 
   static void snackBar(GlobalKey<ScaffoldState> scaffoldKey, message) {
     scaffoldKey.currentState.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  static Widget placholder({String des = 'No Data', String url = "assets/images/empty.png"}) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Center(
+          child: Image.asset(
+            url,
+            width: 300,
+          ),
+        ),
+        SizedBox(height: 20),
+        Text(des),
+        SizedBox(height: 80),
+      ],
+    );
   }
 }

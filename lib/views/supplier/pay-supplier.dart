@@ -53,8 +53,7 @@ class _SupplierPayState extends State<SupplierPay> {
     Map<String, dynamic> mapData = {'supplierId': widget.id, 'date': selectedDate.toString(), 'amount': amount.text};
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce = await dio
-          .post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewSupplierPayManagement.php', data: data);
+      var responce = await dio.post('thousandBricksApi/addNewSupplierPayManagement.php', data: data);
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
       Navigator.pop(context);

@@ -35,7 +35,7 @@ class _AddCatalogueState extends State<AddCatalogue> {
     });
     try {
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=all',
+        'thousandBricksApi/getSiteDetails.php?type=all',
       );
       setState(() {
         sites = Sites.fromJson(jsonDecode(responce.data));

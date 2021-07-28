@@ -1,13 +1,13 @@
 class SiteDetails {
-  List<Data> data;
+  List<SitesData> data;
 
   SiteDetails({this.data});
 
   SiteDetails.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
-      data = new List<Data>();
+      data = new List<SitesData>();
       json['data'].forEach((v) {
-        data.add(new Data.fromJson(v));
+        data.add(new SitesData.fromJson(v));
       });
     }
   }
@@ -21,7 +21,7 @@ class SiteDetails {
   }
 }
 
-class Data {
+class SitesData {
   String id;
   String siteName;
   String siteLocation;
@@ -41,7 +41,7 @@ class Data {
   List<DrawingFile> drawingsFile;
   List drawingsLink;
 
-  Data(
+  SitesData(
       {this.id,
       this.siteName,
       this.siteLocation,
@@ -61,7 +61,7 @@ class Data {
       this.drawingsFile,
       this.drawingsLink});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  SitesData.fromJson(Map<String, dynamic> json) {
     id = json['id'] ?? '';
     siteName = json['siteName'] ?? '';
     siteLocation = json['siteLocation'] ?? '';

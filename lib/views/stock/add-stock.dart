@@ -52,7 +52,7 @@ class _AddStockState extends State<AddStock> {
     });
     try {
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=all',
+        'thousandBricksApi/getSiteDetails.php?type=all',
       );
       setState(() {
         sites = Sites.fromJson(jsonDecode(responce.data));
@@ -77,7 +77,7 @@ class _AddStockState extends State<AddStock> {
     });
     try {
       var responce = await dio.get(
-        'http://1000bricks.meatmatestore.in/thousandBricksApi/getSupplierDetails.php?type=all',
+        'thousandBricksApi/getSupplierDetails.php?type=all',
       );
       setState(() {
         suppliers = Suppliers.fromJson(jsonDecode(responce.data));
@@ -135,7 +135,7 @@ class _AddStockState extends State<AddStock> {
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce = await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewStock.php', data: data);
+      var responce = await dio.post('thousandBricksApi/addNewStock.php', data: data);
       Commons.snackBar(scaffoldKey, 'Added Stock');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Provider.of<ManagementProvider>(context, listen: false).getAllStock();

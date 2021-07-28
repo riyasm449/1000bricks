@@ -40,7 +40,7 @@ class _AddIncomePageState extends State<AddIncomePage> {
     });
     try {
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=all',
+        'thousandBricksApi/getSiteDetails.php?type=all',
       );
       setState(() {
         sites = Sites.fromJson(jsonDecode(responce.data));
@@ -83,8 +83,7 @@ class _AddIncomePageState extends State<AddIncomePage> {
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce =
-          await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewIncome.php', data: data);
+      var responce = await dio.post('thousandBricksApi/addNewIncome.php', data: data);
       Commons.snackBar(scaffoldKey, 'Added Income');
       clear();
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();

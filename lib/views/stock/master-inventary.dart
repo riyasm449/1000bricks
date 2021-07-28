@@ -33,58 +33,73 @@ class _MasterInventoryState extends State<MasterInventory> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (managementProvider.isLoading) CircularProgressIndicator(),
-            Padding(
-              padding: const EdgeInsets.all(15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Stock Value : ${dashboardProvider.dashboardData.totalSiteExpense}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Commons.bgColor)),
-                  Text('To pay : ${dashboardProvider.dashboardData.totalSiteExpense}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Commons.bgColor)),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(),
-                  InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/supplier');
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      decoration: BoxDecoration(color: Commons.bgColor, borderRadius: BorderRadius.circular(8)),
-                      child: Text('Pay Supplier',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          )),
-                    ),
+            if (managementProvider.isLoading) Center(child: CircularProgressIndicator()),
+            if (!managementProvider.isLoading && managementProvider.stockManagement == null) Commons.placholder(),
+            if (!managementProvider.isLoading && managementProvider.stockManagement != null)
+              if (managementProvider.stockManagement.data?.isEmpty) Commons.placholder(),
+            if (!managementProvider.isLoading && managementProvider.stockManagement != null)
+              if (managementProvider.stockManagement.data != null)
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text('Stock Value : ${dashboardProvider.dashboardData.totalSiteExpense}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
                   ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              child: Table(border: TableBorder.all(), // Allows to add a border decoration around your table
-                  children: [
-                    TableRow(children: [
-                      tableTitle('Supplier Name', bold: true),
-                      tableTitle('Site Name', bold: true),
-                      tableTitle('Category', bold: true),
-                      tableTitle('Amount', bold: true),
-                    ]),
-                    if (!managementProvider.isLoading && managementProvider.stockManagement != null)
-                      if (managementProvider.stockManagement.data != null)
+                ),
+            if (!managementProvider.isLoading && managementProvider.stockManagement != null)
+              if (managementProvider.stockManagement.data != null)
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text('To pay : ${dashboardProvider.dashboardData.totalSiteExpense}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                  ),
+                ),
+            if (!managementProvider.isLoading && managementProvider.stockManagement != null)
+              if (managementProvider.stockManagement.data != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(),
+                      InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, '/supplier');
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          decoration: BoxDecoration(color: Commons.bgColor, borderRadius: BorderRadius.circular(8)),
+                          child: Text('Pay Supplier',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              )),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            if (!managementProvider.isLoading && managementProvider.stockManagement != null)
+              if (managementProvider.stockManagement.data != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  child: Table(border: TableBorder.all(), // Allows to add a border decoration around your table
+                      children: [
+                        TableRow(children: [
+                          tableTitle('Supplier Name', bold: true),
+                          tableTitle('Site Name', bold: true),
+                          tableTitle('Category', bold: true),
+                          tableTitle('Amount', bold: true),
+                        ]),
                         for (int index = 0; index < managementProvider.stockManagement.data.length; index++)
                           TableRow(children: [
                             tableTitle(managementProvider.stockManagement.data[index]?.supplierName ?? '',
@@ -96,8 +111,8 @@ class _MasterInventoryState extends State<MasterInventory> {
                             tableTitle(managementProvider.stockManagement.data[index]?.totalAmount ?? '',
                                 textColor: Colors.black),
                           ]),
-                  ]),
-            ),
+                      ]),
+                ),
           ],
         ),
       ),

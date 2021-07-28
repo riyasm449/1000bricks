@@ -31,9 +31,7 @@ class _ExpenseManagementState extends State<ExpenseManagement> {
     });
     FormData data = FormData.fromMap({'id': id});
     try {
-      var responce = await dio.post(
-          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateExpenseDetails.php?type=deleteExpense',
-          data: data);
+      var responce = await dio.post('thousandBricksApi/updateExpenseDetails.php?type=deleteExpense', data: data);
       print(responce);
       Commons.snackBar(scaffoldKey, 'Deleted Successfully');
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
@@ -54,28 +52,30 @@ class _ExpenseManagementState extends State<ExpenseManagement> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        title:
-            Text('Income Management', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+        title: Text('Expense Management',
+            style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (isLoading || managementProvider.isLoading) CircularProgressIndicator(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
-              child: Table(border: TableBorder.all(), // Allows to add a border decoration around your table
-                  children: [
-                    TableRow(children: [
-                      tableTitle('Site Name', bold: true),
-                      tableTitle(' Credit Amount ', bold: true),
-                      tableTitle('View', bold: true),
-                      tableTitle('Delete', bold: true),
-                    ]),
-                    if (!managementProvider.isLoading &&
-                        !isLoading &&
-                        managementProvider.generalExpenceManagement != null)
-                      if (managementProvider.generalExpenceManagement.data?.isNotEmpty)
+            if (isLoading || managementProvider.isLoading) Center(child: CircularProgressIndicator()),
+            if (!managementProvider.isLoading && managementProvider.generalExpenceManagement == null && !isLoading)
+              Commons.placholder(),
+            if (!managementProvider.isLoading && managementProvider.generalExpenceManagement != null && !isLoading)
+              if (managementProvider.generalExpenceManagement.data?.isEmpty) Commons.placholder(),
+            if (!managementProvider.isLoading && managementProvider.generalExpenceManagement != null && !isLoading)
+              if (managementProvider.generalExpenceManagement.data?.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
+                  child: Table(border: TableBorder.all(), // Allows to add a border decoration around your table
+                      children: [
+                        TableRow(children: [
+                          tableTitle('Site Name', bold: true),
+                          tableTitle(' Credit Amount ', bold: true),
+                          tableTitle('View', bold: true),
+                          tableTitle('Delete', bold: true),
+                        ]),
                         for (int index = 0; index < managementProvider.generalExpenceManagement.data.length; index++)
                           TableRow(children: [
                             tableTitle(managementProvider.generalExpenceManagement.data[index].expenseBy,
@@ -95,15 +95,45 @@ class _ExpenseManagementState extends State<ExpenseManagement> {
                             Center(
                                 child: IconButton(
                                     onPressed: () {
-                                      deleteData(managementProvider.generalExpenceManagement.data[index].id);
+                                      showAlertDialog(
+                                          context, managementProvider.generalExpenceManagement.data[index].id);
                                     },
                                     icon: Icon(Icons.delete)))
                           ]),
-                  ]),
-            ),
+                      ]),
+                ),
           ],
         ),
       ),
+    );
+  }
+
+  showAlertDialog(BuildContext context, String id) {
+    Widget okButton = FlatButton(
+      child: Text("Yes", style: TextStyle(color: Colors.green)),
+      onPressed: () {
+        deleteData(id);
+        Navigator.pop(context);
+      },
+    );
+    Widget cancelButton = FlatButton(
+      child: Text("No", style: TextStyle(color: Colors.red)),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Delete Income',
+            style: TextStyle(color: Colors.red),
+          ),
+          content: Text('Are you sure to delete?'),
+          actions: [okButton, cancelButton],
+        );
+      },
     );
   }
 

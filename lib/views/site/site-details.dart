@@ -160,7 +160,7 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
     });
     try {
       var responce = await dio.get(
-        'https://1000bricks.meatmatestore.in/thousandBricksApi/getSiteDetails.php?type=${widget.id}',
+        'thousandBricksApi/getSiteDetails.php?type=${widget.id}',
       );
       var res = await FirebaseFirestore.instance.collection('files').doc('${widget.id}').get();
       print(responce);
@@ -212,9 +212,8 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce = await dio.post(
-          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSiteDetails.php?type=updateTextData',
-          data: data, onSendProgress: (int sent, int total) {
+      var responce = await dio.post('thousandBricksApi/updateSiteDetails.php?type=updateTextData', data: data,
+          onSendProgress: (int sent, int total) {
         String percentage = (sent / total * 100).toStringAsFixed(2);
         setState(() {
           progress = "$sent" + " Bytes of " "$total Bytes - " + percentage + " % uploaded";
@@ -465,19 +464,6 @@ class _SiteDetailsPageState extends State<SiteDetailsPage> {
                     color: Colors.redAccent,
                     colorBrightness: Brightness.dark))
           ]),
-          // if (file.isNotEmpty)
-          //   for (int i = 0; i < file.length; i++)
-          //     Row(children: [
-          //       Container(
-          //           margin: EdgeInsets.all(5),
-          //           width: MediaQuery.of(context).size.width - 82,
-          //           child: Text(basename(file[i].path))),
-          //       InkWell(
-          //           onTap: () {
-          //             remove(i);
-          //           },
-          //           child: Icon(Icons.cancel_sharp))
-          //     ]),
         ],
       ),
     );

@@ -60,9 +60,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce = await dio.post(
-          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSupplierDetails.php?type=update',
-          data: data);
+      var responce = await dio.post('thousandBricksApi/updateSupplierDetails.php?type=update', data: data);
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Commons.snackBar(scaffoldKey, 'Added Successfully...');
       Provider.of<ManagementProvider>(context, listen: false).getAllSuppliers();
@@ -85,9 +83,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
     Map<String, dynamic> mapData = {'id': widget.id};
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce = await dio.post(
-          'http://1000bricks.meatmatestore.in/thousandBricksApi/updateSupplierDetails.php?type=deleteSupplier',
-          data: data);
+      var responce = await dio.post('thousandBricksApi/updateSupplierDetails.php?type=deleteSupplier', data: data);
       Provider.of<DashboardProvider>(context, listen: false).getDashboardData();
       Navigator.pop(context);
       print(responce);
@@ -121,8 +117,7 @@ class _SupplierDetailsPageState extends State<SupplierDetailsPage> {
     });
 
     try {
-      var responce = await dio
-          .get('https://1000bricks.meatmatestore.in/thousandBricksApi/getSupplierDetails.php?type=${widget.id}');
+      var responce = await dio.get('thousandBricksApi/getSupplierDetails.php?type=${widget.id}');
       setState(() {
         suppliers = Suppliers.fromJson(jsonDecode(responce.data));
         if (suppliers?.data != null) {

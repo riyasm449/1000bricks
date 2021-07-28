@@ -63,8 +63,7 @@ class _AddExpencePageState extends State<AddExpencePage> {
     };
     FormData data = FormData.fromMap(mapData);
     try {
-      var responce =
-          await dio.post('http://1000bricks.meatmatestore.in/thousandBricksApi/addNewExpenses.php', data: data);
+      var responce = await dio.post('thousandBricksApi/addNewExpenses.php', data: data);
       Commons.snackBar(scaffoldKey, 'Expense Added');
       clear();
       await Provider.of<DashboardProvider>(context, listen: false).getDashboardData();

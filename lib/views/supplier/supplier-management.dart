@@ -30,49 +30,50 @@ class _SupplierManagementState extends State<SupplierManagement> {
         ),
         body: SingleChildScrollView(
             child: Column(children: [
-          if (managementProvider.isLoading) CircularProgressIndicator(),
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
-              child: Table(border: TableBorder.all(), // Allows to add a border decoration around your table
-                  children: [
+          if (managementProvider.isLoading) Center(child: CircularProgressIndicator()),
+          if (!managementProvider.isLoading && managementProvider.supplierManagement == null) Commons.placholder(),
+          if (!managementProvider.isLoading && managementProvider.supplierManagement != null)
+            if (managementProvider.supplierManagement.data?.isEmpty) Commons.placholder(),
+          if (!managementProvider.isLoading && managementProvider.supplierManagement != null)
+            if (managementProvider.supplierManagement.data?.isNotEmpty)
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
+                  child: Table(border: TableBorder.all(), children: [
                     TableRow(children: [
                       tableTitle('Supplier Name', bold: true),
                       tableTitle('Supplier Location', bold: true),
                       tableTitle('View', bold: true),
                       tableTitle('Edit', bold: true),
                     ]),
-                    if (!managementProvider.isLoading && managementProvider.supplierManagement != null)
-                      if (managementProvider.supplierManagement.data?.isNotEmpty)
-                        for (int index = 0; index < managementProvider.supplierManagement.data.length; index++)
-                          TableRow(children: [
-                            tableTitle(managementProvider.supplierManagement.data[index].companyName,
-                                textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
-                            tableTitle(managementProvider.supplierManagement.data[index].address,
-                                textColor: Colors.black),
-                            Center(
-                                child: IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) => SupplierDetailsPage(
-                                                    id: managementProvider.supplierManagement.data[index].id,
-                                                  )));
-                                    },
-                                    icon: Icon(Icons.remove_red_eye))),
-                            Center(
-                                child: IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) => SupplierDetailsPage(
-                                                    id: managementProvider.supplierManagement.data[index].id,
-                                                    edit: true,
-                                                  )));
-                                    },
-                                    icon: Icon(Icons.edit)))
-                          ])
+                    for (int index = 0; index < managementProvider.supplierManagement.data.length; index++)
+                      TableRow(children: [
+                        tableTitle(managementProvider.supplierManagement.data[index].companyName,
+                            textColor: Colors.black, color: index.isEven ? Colors.blueGrey : null),
+                        tableTitle(managementProvider.supplierManagement.data[index].address, textColor: Colors.black),
+                        Center(
+                            child: IconButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (BuildContext context) => SupplierDetailsPage(
+                                                id: managementProvider.supplierManagement.data[index].id,
+                                              )));
+                                },
+                                icon: Icon(Icons.remove_red_eye))),
+                        Center(
+                            child: IconButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (BuildContext context) => SupplierDetailsPage(
+                                                id: managementProvider.supplierManagement.data[index].id,
+                                                edit: true,
+                                              )));
+                                },
+                                icon: Icon(Icons.edit)))
+                      ])
                   ]))
         ])));
   }
