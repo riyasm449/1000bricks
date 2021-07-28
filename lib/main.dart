@@ -117,7 +117,6 @@ class _MyAppState extends State<MyApp> {
           debugShowCheckedModeBanner: false,
           title: '1000 Bricks',
           theme: appTheme,
-          // home: HomeSite(),
           home: SplashScreen(),
           routes: <String, WidgetBuilder>{
             '/login': (BuildContext context) => LoginPage(),
